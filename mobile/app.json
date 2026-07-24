@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "HomeHelpUK",
+    "slug": "homehelpuk-poc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FFF8EF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.homehelpuk.poc",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.homehelpuk.poc",
+      "permissions": [
+        "INTERNET"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF8EF"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5d61a1d9-6d9e-4fc2-8bef-988915d7c4c2"
+      }
+    }
+  }
+}

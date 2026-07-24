@@ -1,0 +1,754 @@
+[
+  {
+    "id": "prov_a7638a30f72d",
+    "userId": "user_721716494171",
+    "name": "Sanskar",
+    "avatar": "https://i.pravatar.cc/150?u=sanskar%40gmail.com",
+    "bio": "5 Years of Experience of Cleaning ",
+    "categories": [
+      "cat_plumbing",
+      "cat_cleaning",
+      "cat_cooking"
+    ],
+    "services": [
+      {
+        "serviceId": "service_leak_repair",
+        "customPrice": 45,
+        "enabled": true,
+        "customDescription": "Fixing leaking pipes, under-sink leaks, and dripping joints.",
+        "customWhatsIncluded": [
+          "Source diagnosis",
+          "Pipe sealing or joint replacement",
+          "Testing pressure"
+        ],
+        "customWhatsNotIncluded": [
+          "Replacement of main underground sewer pipes",
+          "Structural wall or tile restoration after access",
+          "Emergency boiler overhaul without part replacement"
+        ],
+        "customAddOns": [
+          {
+            "id": "service_leak_repair_addon_part_fetch",
+            "name": "Parts Sourcing Trip",
+            "description": "Travel to merchant for specialized part",
+            "price": 20,
+            "enabled": true
+          },
+          {
+            "id": "service_leak_repair_addon_secondary_check",
+            "name": "Secondary Pipe Inspection",
+            "description": "Check adjacent drain/pipe lines",
+            "price": 25,
+            "enabled": true
+          }
+        ],
+        "customFaqs": [
+          {
+            "q": "Are replacement parts included in the base price?",
+            "a": "Base prices cover labor and standard consumables (seals, tape). Replacement hardware taps, valves, or pipes are billed transparently."
+          },
+          {
+            "q": "Trt",
+            "a": "Ttt"
+          }
+        ]
+      },
+      {
+        "serviceId": "service_toilet_repair",
+        "customPrice": 55,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_tap_install",
+        "customPrice": 50,
+        "enabled": true,
+        "customDescription": "Replacing old kitchen or bathroom taps with modern fittings.",
+        "customWhatsIncluded": [
+          "Removal of old tap",
+          "Connecting new tap flexihoses",
+          "Testing flow"
+        ],
+        "customWhatsNotIncluded": [
+          "Replacement of main underground sewer pipes",
+          "Structural wall or tile restoration after access",
+          "Emergency boiler overhaul without part replacement"
+        ],
+        "customAddOns": [
+          {
+            "id": "service_tap_install_addon_part_fetch",
+            "name": "Parts Sourcing Trip",
+            "description": "Travel to merchant for specialized part",
+            "price": 20,
+            "enabled": true
+          },
+          {
+            "id": "service_tap_install_addon_secondary_check",
+            "name": "Secondary Pipe Inspection",
+            "description": "Check adjacent drain/pipe lines",
+            "price": 25,
+            "enabled": true
+          }
+        ],
+        "customFaqs": [
+          {
+            "q": "Are replacement parts included in the base price?",
+            "a": "Base prices cover labor and standard consumables (seals, tape). Replacement hardware taps, valves, or pipes are billed transparently."
+          },
+          {
+            "q": "Will I receive an upfront estimate before work starts?",
+            "a": "Yes, your provider will inspect the work area and confirm all costs with you before starting any major repair."
+          }
+        ],
+        "pricingRules": {
+          "pricingModel": "per_item",
+          "basePrice": 50,
+          "includedQuantity": 1,
+          "includedUnit": "item",
+          "additionalUnitPrice": 5,
+          "additionalUnit": "item",
+          "minimumQuantity": 1,
+          "maximumQuantity": 5
+        }
+      },
+      {
+        "serviceId": "service_minor_plumbing_repairs",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_standard_cleaning",
+        "customPrice": 18,
+        "enabled": true,
+        "customDescription": "Standard home cleaning for any size property. Dusting, vacuuming, mopping, and general tidying.",
+        "customWhatsIncluded": [
+          "Dusting all surfaces and furniture",
+          "Vacuuming carpets and mopping hard floors",
+          "Cleaning kitchen countertops and sink",
+          "Sanitizing bathrooms and toilets",
+          "Emptying bins and general tidy-up"
+        ],
+        "customWhatsNotIncluded": [
+          "Deep stain removal",
+          "Cleaning inside oven / appliances",
+          "Professional carpet washing",
+          "Window cleaning (exterior)"
+        ],
+        "customAddOns": [
+          {
+            "id": "addon_oven",
+            "name": "Clean inside Oven",
+            "price": 16,
+            "description": ""
+          },
+          {
+            "id": "addon_fridge",
+            "name": "Clean inside Fridge",
+            "price": 10
+          },
+          {
+            "id": "addon_ironing",
+            "name": "1 Hour Ironing Addon",
+            "price": 12
+          }
+        ],
+        "customFaqs": [
+          {
+            "q": "Do I need to supply cleaning materials?",
+            "a": "No, our providers bring their own standard cleaning supplies and equipment."
+          },
+          {
+            "q": "Can I be out of the house during the service?",
+            "a": "Yes, just leave entry instructions in the notes when booking."
+          }
+        ],
+        "pricingRules": {
+          "pricingModel": "per_hour",
+          "enabledModels": [
+            "per_hour"
+          ],
+          "basePrice": 18,
+          "enablePerHour": true,
+          "includedHours": 1,
+          "additionalHourPrice": 18,
+          "minHours": 1,
+          "maxHours": 8,
+          "enablePerUnit": false,
+          "includedQuantity": 1,
+          "includedUnit": "room",
+          "additionalUnitPrice": 0,
+          "additionalUnit": "room",
+          "minimumQuantity": 1,
+          "maximumQuantity": 12
+        }
+      },
+      {
+        "serviceId": "service_deep_cleaning",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_kitchen_deep",
+        "customPrice": 35,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_bathroom_deep",
+        "customPrice": 32,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_full_house_deep",
+        "customPrice": 120,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_standard_house_cleaning",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_window_cleaning_ground_floor",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_oven_cleaning",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_move_in",
+        "customPrice": 85,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_eot",
+        "customPrice": 110,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_sofa",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_carpet",
+        "customPrice": 50,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_window",
+        "customPrice": 25,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_home_cook",
+        "customPrice": 19,
+        "enabled": true,
+        "customDescription": "Basic meal preparation for individuals and small families.",
+        "customWhatsIncluded": [
+          "Professional preparation of home cook (basic meal preparation)",
+          "Fresh ingredient handling and hygiene compliance",
+          "Customization according to agreed dietary requirements",
+          "Kitchen surface wipe down after cooking"
+        ],
+        "customWhatsNotIncluded": [
+          "Grocery costs (unless explicitly agreed or added as an add-on)",
+          "Major commercial kitchen appliance repair",
+          "Catering equipment rental"
+        ],
+        "customAddOns": [
+          {
+            "id": "service_home_cook_addon_extra_meal",
+            "name": "Extra Meal / Portion",
+            "description": "Prepare 2 additional portions",
+            "price": 7,
+            "enabled": true
+          },
+          {
+            "id": "service_home_cook_addon_groceries",
+            "name": "Grocery Pickup Service",
+            "description": "Provider buys and brings agreed ingredients",
+            "price": 15,
+            "enabled": true
+          },
+          {
+            "id": "service_home_cook_addon_menu_plan",
+            "name": "Customized Dietary Plan",
+            "description": "Tailored weekly nutrition menu plan",
+            "price": 10,
+            "enabled": true
+          }
+        ],
+        "customFaqs": [
+          {
+            "q": "Do I need to provide the ingredients and groceries?",
+            "a": "By default, groceries are provided by the client. You can also select the Grocery Pickup add-on to have your provider purchase ingredients before arriving."
+          },
+          {
+            "q": "Can meals be stored for multiple days?",
+            "a": "Yes! Your provider will safely package and label prepared meals for refrigeration or freezing per your instructions."
+          },
+          {
+            "q": "Can I request specific dietary requirements?",
+            "a": "Absolutely. You can specify any allergies, vegetarian, vegan, halal, gluten-free, or low-sodium preferences when booking."
+          }
+        ],
+        "pricingRules": {
+          "pricingModel": "multi",
+          "basePrice": 19,
+          "includedQuantity": 4,
+          "includedUnit": "person",
+          "additionalUnitPrice": 19,
+          "additionalUnit": "person",
+          "minimumQuantity": 1,
+          "maximumQuantity": 12,
+          "enabledModels": [
+            "per_person",
+            "per_hour"
+          ],
+          "enablePerHour": true,
+          "includedHours": 1,
+          "additionalHourPrice": 16,
+          "minHours": 1,
+          "maxHours": 8,
+          "enablePerUnit": true
+        }
+      },
+      {
+        "serviceId": "service_family_meal_prep",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_weekly_meal_prep",
+        "customPrice": 90,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_healthy_meal_prep",
+        "customPrice": 32,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_vegetarian_meal_prep",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_vegan_meal_prep",
+        "customPrice": 30,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_indian_home_cooking",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_asian_cuisine_cooking",
+        "customPrice": 30,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_continental_cooking",
+        "customPrice": 32,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_breakfast_prep",
+        "customPrice": 20,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_lunch_prep",
+        "customPrice": 25,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_dinner_prep",
+        "customPrice": 30,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_baby_food_prep",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_elderly_meal_prep",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_bbq_grill_cooking",
+        "customPrice": 40,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_party_cooking",
+        "customPrice": 150,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_private_chef",
+        "customPrice": 180,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_festival_cooking",
+        "customPrice": 75,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_baking",
+        "customPrice": 45,
+        "enabled": true
+      }
+    ],
+    "postcode": "NW1 6XE",
+    "serviceRadiusMiles": 10,
+    "availability": {
+      "weekly": {
+        "Mon": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Tue": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Wed": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Thu": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Fri": [],
+        "Sat": [],
+        "Sun": []
+      },
+      "holidays": [],
+      "vacationMode": false,
+      "emergencyUnavailable": false
+    },
+    "documents": {
+      "idType": "Passport",
+      "idUrl": "/uploads/documents/id_mock.jpg",
+      "dbsCertificateUrl": "/uploads/documents/dbs_mock.jpg",
+      "dbsStatus": "approved"
+    },
+    "bankDetails": {
+      "accountHolder": "Sanskar",
+      "sortCode": "123422",
+      "accountNumber": "23456754"
+    },
+    "rating": 3,
+    "reviewCount": 1,
+    "verified": true,
+    "completedJobs": 0
+  },
+  {
+    "id": "prov_604238ed197f",
+    "userId": "user_576226087a30",
+    "name": "Samruddhi ",
+    "avatar": "https://i.pravatar.cc/150?u=samruddhi",
+    "bio": "5 years",
+    "categories": [
+      "cat_cooking",
+      "cat_cleaning",
+      "cat_painting"
+    ],
+    "services": [
+      {
+        "serviceId": "service_home_cook",
+        "customPrice": 20,
+        "enabled": true,
+        "customDescription": "Basic meal preparation for individuals and small families.",
+        "customWhatsIncluded": [
+          "Professional preparation of home cook (basic meal preparation)",
+          "Fresh ingredient handling and hygiene compliance",
+          "Customization according to agreed dietary requirements",
+          "Kitchen surface wipe down after cooking"
+        ],
+        "customWhatsNotIncluded": [
+          "Grocery costs (unless explicitly agreed or added as an add-on)",
+          "Major commercial kitchen appliance repair",
+          "Catering equipment rental"
+        ],
+        "customAddOns": [
+          {
+            "id": "service_home_cook_addon_extra_meal",
+            "name": "Extra Meal / Portion",
+            "description": "Prepare 2 additional portions",
+            "price": 7,
+            "enabled": true
+          },
+          {
+            "id": "service_home_cook_addon_groceries",
+            "name": "Grocery Pickup Service",
+            "description": "Provider buys and brings agreed ingredients",
+            "price": 15,
+            "enabled": true
+          },
+          {
+            "id": "service_home_cook_addon_menu_plan",
+            "name": "Customized Dietary Plan",
+            "description": "Tailored weekly nutrition menu plan",
+            "price": 10,
+            "enabled": true
+          }
+        ],
+        "customFaqs": [
+          {
+            "q": "Do I need to provide the ingredients and groceries?",
+            "a": "By default, groceries are provided by the client. You can also select the Grocery Pickup add-on to have your provider purchase ingredients before arriving."
+          },
+          {
+            "q": "Can meals be stored for multiple days?",
+            "a": "Yes! Your provider will safely package and label prepared meals for refrigeration or freezing per your instructions."
+          },
+          {
+            "q": "Can I request specific dietary requirements?",
+            "a": "Absolutely. You can specify any allergies, vegetarian, vegan, halal, gluten-free, or low-sodium preferences when booking."
+          }
+        ],
+        "pricingRules": {
+          "pricingModel": "per_person",
+          "enabledModels": [
+            "per_person"
+          ],
+          "basePrice": 20,
+          "enablePerHour": false,
+          "includedHours": 1,
+          "additionalHourPrice": 0,
+          "minHours": 1,
+          "maxHours": 8,
+          "enablePerUnit": true,
+          "includedQuantity": 4,
+          "includedUnit": "person",
+          "additionalUnitPrice": 10,
+          "additionalUnit": "person",
+          "minimumQuantity": 1,
+          "maximumQuantity": 12
+        }
+      },
+      {
+        "serviceId": "service_family_meal_prep",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_weekly_meal_prep",
+        "customPrice": 90,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_healthy_meal_prep",
+        "customPrice": 32,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_vegetarian_meal_prep",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_vegan_meal_prep",
+        "customPrice": 30,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_indian_home_cooking",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_asian_cuisine_cooking",
+        "customPrice": 30,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_continental_cooking",
+        "customPrice": 32,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_breakfast_prep",
+        "customPrice": 20,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_lunch_prep",
+        "customPrice": 25,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_dinner_prep",
+        "customPrice": 30,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_baby_food_prep",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_elderly_meal_prep",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_bbq_grill_cooking",
+        "customPrice": 40,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_party_cooking",
+        "customPrice": 150,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_private_chef",
+        "customPrice": 180,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_festival_cooking",
+        "customPrice": 75,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_baking",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_standard_cleaning",
+        "customPrice": 18,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_deep_cleaning",
+        "customPrice": 28,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_kitchen_deep",
+        "customPrice": 35,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_bathroom_deep",
+        "customPrice": 32,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_full_house_deep",
+        "customPrice": 120,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_standard_house_cleaning",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_window_cleaning_ground_floor",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_oven_cleaning",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_move_in",
+        "customPrice": 85,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_eot",
+        "customPrice": 110,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_sofa",
+        "customPrice": 45,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_carpet",
+        "customPrice": 50,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_window",
+        "customPrice": 25,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_interior_paint",
+        "customPrice": 160,
+        "enabled": true
+      },
+      {
+        "serviceId": "service_wallpaper",
+        "customPrice": 75,
+        "enabled": true
+      }
+    ],
+    "postcode": "NW1234",
+    "serviceRadiusMiles": 10,
+    "availability": {
+      "weekly": {
+        "Mon": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Tue": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Wed": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Thu": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Fri": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Sat": [
+          "08:00-12:00",
+          "13:00-17:00"
+        ],
+        "Sun": []
+      },
+      "holidays": [],
+      "vacationMode": false,
+      "emergencyUnavailable": false
+    },
+    "documents": {
+      "idType": "Passport",
+      "idUrl": "/uploads/documents/id_mock.jpg",
+      "dbsCertificateUrl": "/uploads/documents/dbs_mock.jpg",
+      "dbsStatus": "approved"
+    },
+    "bankDetails": {
+      "accountHolder": "Samruddhi",
+      "sortCode": "12-345",
+      "accountNumber": "123456872189"
+    },
+    "rating": 5,
+    "reviewCount": 1,
+    "verified": true,
+    "completedJobs": 0
+  }
+]

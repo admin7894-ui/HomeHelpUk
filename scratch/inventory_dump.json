@@ -1,0 +1,746 @@
+[
+  {
+    "id": "cat_cooking",
+    "name": "Cooking",
+    "coverSlot": 1,
+    "subcategoriesCount": 2,
+    "services": [
+      {
+        "id": "service_home_cook",
+        "name": "Home Cook (Basic Meal Preparation)",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_family_meal_prep",
+        "name": "Family Meal Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_weekly_meal_prep",
+        "name": "Weekly Meal Prep",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_healthy_meal_prep",
+        "name": "Healthy Meal Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_vegetarian_meal_prep",
+        "name": "Vegetarian Meal Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_vegan_meal_prep",
+        "name": "Vegan Meal Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_indian_home_cooking",
+        "name": "Indian Home Cooking",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_asian_cuisine_cooking",
+        "name": "Asian Cuisine Cooking",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_continental_cooking",
+        "name": "Continental Cooking",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_breakfast_prep",
+        "name": "Breakfast Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_lunch_prep",
+        "name": "Lunch Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_dinner_prep",
+        "name": "Dinner Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_baby_food_prep",
+        "name": "Baby Food Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_elderly_meal_prep",
+        "name": "Elderly Meal Preparation",
+        "subcategoryId": "sub_meal_prep",
+        "subcategoryName": "Meal Preparation",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_bbq_grill_cooking",
+        "name": "BBQ / Grill Cooking",
+        "subcategoryId": "sub_events_baking",
+        "subcategoryName": "Events & Baking",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_party_cooking",
+        "name": "Party Cooking (Small Gathering)",
+        "subcategoryId": "sub_events_baking",
+        "subcategoryName": "Events & Baking",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_private_chef",
+        "name": "Private Chef (Home Dining)",
+        "subcategoryId": "sub_events_baking",
+        "subcategoryName": "Events & Baking",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_festival_cooking",
+        "name": "Festival & Traditional Cooking",
+        "subcategoryId": "sub_events_baking",
+        "subcategoryName": "Events & Baking",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_baking",
+        "name": "Baking (Basic Cakes & Cookies)",
+        "subcategoryId": "sub_events_baking",
+        "subcategoryName": "Events & Baking",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_cleaning",
+    "name": "Cleaning",
+    "coverSlot": 1,
+    "subcategoriesCount": 3,
+    "services": [
+      {
+        "id": "service_standard_cleaning",
+        "name": "Standard Cleaning",
+        "subcategoryId": "sub_home_cleaning",
+        "subcategoryName": "Home Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_deep_cleaning",
+        "name": "Deep Cleaning",
+        "subcategoryId": "sub_home_cleaning",
+        "subcategoryName": "Home Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_kitchen_deep",
+        "name": "Kitchen Deep Cleaning",
+        "subcategoryId": "sub_home_cleaning",
+        "subcategoryName": "Home Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_bathroom_deep",
+        "name": "Bathroom Deep Cleaning",
+        "subcategoryId": "sub_home_cleaning",
+        "subcategoryName": "Home Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_full_house_deep",
+        "name": "Full House Deep Cleaning",
+        "subcategoryId": "sub_home_cleaning",
+        "subcategoryName": "Home Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_standard_house_cleaning",
+        "name": "Standard House Cleaning",
+        "subcategoryId": "sub_home_cleaning",
+        "subcategoryName": "Home Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_window_cleaning_ground_floor",
+        "name": "Window Cleaning (Ground Floor)",
+        "subcategoryId": "sub_home_cleaning",
+        "subcategoryName": "Home Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_oven_cleaning",
+        "name": "Oven Cleaning",
+        "subcategoryId": "sub_home_cleaning",
+        "subcategoryName": "Home Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_move_in",
+        "name": "Move In Cleaning",
+        "subcategoryId": "sub_move_cleaning",
+        "subcategoryName": "Move In/Out Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_eot",
+        "name": "End of Tenancy Cleaning",
+        "subcategoryId": "sub_move_cleaning",
+        "subcategoryName": "Move In/Out Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_sofa",
+        "name": "Sofa Cleaning",
+        "subcategoryId": "sub_specialist_cleaning",
+        "subcategoryName": "Specialist Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_carpet",
+        "name": "Carpet Cleaning",
+        "subcategoryId": "sub_specialist_cleaning",
+        "subcategoryName": "Specialist Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_window",
+        "name": "Window Cleaning",
+        "subcategoryId": "sub_specialist_cleaning",
+        "subcategoryName": "Specialist Cleaning",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_plumbing",
+    "name": "Plumbing",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_leak_repair",
+        "name": "Leak Repair",
+        "subcategoryId": "sub_plumbing_fixes",
+        "subcategoryName": "Plumbing Fixes",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_toilet_repair",
+        "name": "Toilet Repair",
+        "subcategoryId": "sub_plumbing_fixes",
+        "subcategoryName": "Plumbing Fixes",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_tap_install",
+        "name": "Tap Installation",
+        "subcategoryId": "sub_plumbing_fixes",
+        "subcategoryName": "Plumbing Fixes",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_minor_plumbing_repairs",
+        "name": "Minor Plumbing Repairs",
+        "subcategoryId": "sub_plumbing_fixes",
+        "subcategoryName": "Plumbing Fixes",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_electrical",
+    "name": "Electrical",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_light_install",
+        "name": "Light Installation",
+        "subcategoryId": "sub_electrical_fixes",
+        "subcategoryName": "Electrical Fixes",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_cctv_install",
+        "name": "CCTV Installation",
+        "subcategoryId": "sub_electrical_fixes",
+        "subcategoryName": "Electrical Fixes",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_socket_install",
+        "name": "Socket Installation",
+        "subcategoryId": "sub_electrical_fixes",
+        "subcategoryName": "Electrical Fixes",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_electrical_repairs",
+        "name": "Electrical Repairs",
+        "subcategoryId": "sub_electrical_fixes",
+        "subcategoryName": "Electrical Fixes",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_handyman",
+    "name": "Handyman",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_furniture_assembly",
+        "name": "Furniture Assembly",
+        "subcategoryId": "sub_assembly_install",
+        "subcategoryName": "Assembly & Repairs",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_tv_mounting",
+        "name": "TV Mounting",
+        "subcategoryId": "sub_assembly_install",
+        "subcategoryName": "Assembly & Repairs",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_shelf_install",
+        "name": "Shelf Installation",
+        "subcategoryId": "sub_assembly_install",
+        "subcategoryName": "Assembly & Repairs",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_curtain_blind_installation",
+        "name": "Curtain & Blind Installation",
+        "subcategoryId": "sub_assembly_install",
+        "subcategoryName": "Assembly & Repairs",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_picture_mirror_hanging",
+        "name": "Picture & Mirror Hanging",
+        "subcategoryId": "sub_assembly_install",
+        "subcategoryName": "Assembly & Repairs",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_painting",
+    "name": "Painting",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_interior_paint",
+        "name": "Interior Painting",
+        "subcategoryId": "sub_painting_services",
+        "subcategoryName": "Painting Services",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_wallpaper",
+        "name": "Wallpaper Installation",
+        "subcategoryId": "sub_painting_services",
+        "subcategoryName": "Painting Services",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_gardening",
+    "name": "Gardening",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_lawn_mowing",
+        "name": "Lawn Mowing",
+        "subcategoryId": "sub_garden_maintenance",
+        "subcategoryName": "Garden Maintenance",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_hedge_trim",
+        "name": "Hedge Trimming",
+        "subcategoryId": "sub_garden_maintenance",
+        "subcategoryName": "Garden Maintenance",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_garden_clean",
+        "name": "Garden Cleaning",
+        "subcategoryId": "sub_garden_maintenance",
+        "subcategoryName": "Garden Maintenance",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_garden_maintenance",
+        "name": "Garden Maintenance",
+        "subcategoryId": "sub_garden_maintenance",
+        "subcategoryName": "Garden Maintenance",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_garden_waste_removal",
+        "name": "Garden Waste Removal",
+        "subcategoryId": "sub_garden_maintenance",
+        "subcategoryName": "Garden Maintenance",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_laundry",
+    "name": "Laundry",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_ironing",
+        "name": "Ironing",
+        "subcategoryId": "sub_laundry",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_laundry_pickup_delivery",
+        "name": "Laundry Pickup & Delivery",
+        "subcategoryId": "sub_laundry",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_moving",
+    "name": "Moving",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_moving_help",
+        "name": "Moving Help",
+        "subcategoryId": "sub_moving",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_packing_unpacking",
+        "name": "Packing & Unpacking",
+        "subcategoryId": "sub_moving",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_home_services",
+    "name": "Home Services",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_home_organization",
+        "name": "Home Organization",
+        "subcategoryId": "sub_home_services",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_home_check_visits",
+        "name": "Home Check Visits",
+        "subcategoryId": "sub_home_services",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_plant_watering",
+        "name": "Plant Watering",
+        "subcategoryId": "sub_home_services",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_pet_care",
+    "name": "Pet Care",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_dog_walking",
+        "name": "Dog Walking",
+        "subcategoryId": "sub_pet_care",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_pet_sitting",
+        "name": "Pet Sitting",
+        "subcategoryId": "sub_pet_care",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_vehicle_care",
+    "name": "Vehicle Care",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_mobile_car_wash",
+        "name": "Mobile Car Wash",
+        "subcategoryId": "sub_vehicle_care",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_beauty",
+    "name": "Beauty",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_haircut_home_service",
+        "name": "Haircut (Home Service)",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_hair_styling",
+        "name": "Hair Styling",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_facial",
+        "name": "Facial",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_waxing",
+        "name": "Waxing",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_threading",
+        "name": "Threading",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_manicure",
+        "name": "Manicure",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_pedicure",
+        "name": "Pedicure",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_makeup_party",
+        "name": "Makeup (Party)",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_bridal_makeup",
+        "name": "Bridal Makeup",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      },
+      {
+        "id": "service_massage_wellness",
+        "name": "Massage (Wellness)",
+        "subcategoryId": "sub_beauty",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_appliance",
+    "name": "Appliance",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_appliance_installation_non_gas",
+        "name": "Appliance Installation (Non-Gas)",
+        "subcategoryId": "sub_appliance",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_gas_services",
+    "name": "Gas Services",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_boiler_gas_repairs",
+        "name": "Boiler & Gas Repairs",
+        "subcategoryId": "sub_gas_services",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_childcare",
+    "name": "Childcare",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_babysitting",
+        "name": "Babysitting",
+        "subcategoryId": "sub_childcare",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  },
+  {
+    "id": "cat_care_services",
+    "name": "Care Services",
+    "coverSlot": 1,
+    "subcategoriesCount": 1,
+    "services": [
+      {
+        "id": "service_elderly_companion_visits",
+        "name": "Elderly Companion Visits",
+        "subcategoryId": "sub_care_services",
+        "subcategoryName": "General",
+        "coverSlot": 1,
+        "gallerySlots": 4
+      }
+    ]
+  }
+]

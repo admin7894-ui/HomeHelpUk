@@ -1,0 +1,1978 @@
+[
+  {
+    "serviceId": "service_home_cook",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 20,
+      "includedQuantity": 4,
+      "additionalUnitPrice": 3,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": "1–4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_family_meal_prep",
+    "serviceName": "Family Meal Preparation",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 28,
+      "includedQuantity": 4,
+      "additionalUnitPrice": 3,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": "1–4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_weekly_meal_prep",
+    "serviceName": "Weekly Meal Prep",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 90,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 15,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": "Up to 4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_healthy_meal_prep",
+    "serviceName": "Healthy Meal Preparation",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 32,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 4,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": "1–4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_vegetarian_meal_prep",
+    "serviceName": "Vegetarian Meal Preparation",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 28,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 3,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": "1–4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_vegan_meal_prep",
+    "serviceName": "Vegan Meal Preparation",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 30,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 3,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": "1–4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_indian_home_cooking",
+    "serviceName": "Indian Home Cooking",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 28,
+      "includedQuantity": 4,
+      "additionalUnitPrice": 3,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": "1–4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_asian_cuisine_cooking",
+    "serviceName": "Asian Cuisine Cooking",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 30,
+      "includedQuantity": 4,
+      "additionalUnitPrice": 4,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": "1–4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_continental_cooking",
+    "serviceName": "Continental Cooking",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 32,
+      "includedQuantity": 4,
+      "additionalUnitPrice": 4,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": "1–4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_breakfast_prep",
+    "serviceName": "Breakfast Preparation",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 20,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 2,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": "Up to 4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_lunch_prep",
+    "serviceName": "Lunch Preparation",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 25,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 3,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": "Up to 4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_dinner_prep",
+    "serviceName": "Dinner Preparation",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 30,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 3,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": "Up to 4 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_baby_food_prep",
+    "serviceName": "Baby Food Preparation",
+    "category": "Cooking",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 28,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 8,
+      "minQty": 1,
+      "maxQty": 4,
+      "baseIncludes": "1 Child"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_elderly_meal_prep",
+    "serviceName": "Elderly Meal Preparation",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 28,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 5,
+      "minQty": 1,
+      "maxQty": 4,
+      "baseIncludes": "Up to 2 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_bbq_grill_cooking",
+    "serviceName": "BBQ / Grill Cooking",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 40,
+      "includedQuantity": 6,
+      "additionalUnitPrice": 5,
+      "minQty": 2,
+      "maxQty": 50,
+      "baseIncludes": "Up to 10 Persons"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_party_cooking",
+    "serviceName": "Party Cooking (Small Gathering)",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 150,
+      "includedQuantity": 8,
+      "additionalUnitPrice": 8,
+      "minQty": 4,
+      "maxQty": 100,
+      "baseIncludes": "Up to 20 Guests"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_private_chef",
+    "serviceName": "Private Chef (Home Dining)",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 180,
+      "includedQuantity": 4,
+      "additionalUnitPrice": 25,
+      "minQty": 2,
+      "maxQty": 20,
+      "baseIncludes": "Up to 4 Guests"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_festival_cooking",
+    "serviceName": "Festival & Traditional Cooking",
+    "category": "Cooking",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 75,
+      "includedQuantity": 6,
+      "additionalUnitPrice": 10,
+      "minQty": 2,
+      "maxQty": 100,
+      "baseIncludes": "Up to 15 Guests"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_baking",
+    "serviceName": "Baking (Basic Cakes & Cookies)",
+    "category": "Cooking",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 15,
+      "minQty": 1,
+      "maxQty": 20,
+      "baseIncludes": "1 kg Cake / 12 Cookies"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_standard_cleaning",
+    "serviceName": "Standard Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_hour",
+    "enabledModels": [
+      "per_hour"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 18,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 18,
+      "minQty": 2,
+      "maxQty": 8,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_deep_cleaning",
+    "serviceName": "Deep Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_room",
+    "enabledModels": [
+      "per_room"
+    ],
+    "quantityType": "Room",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 28,
+      "includedQuantity": 3,
+      "additionalUnitPrice": 20,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_kitchen_deep",
+    "serviceName": "Kitchen Deep Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 35,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 0,
+      "minQty": 1,
+      "maxQty": 2,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_bathroom_deep",
+    "serviceName": "Bathroom Deep Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_unit",
+    "enabledModels": [
+      "per_unit"
+    ],
+    "quantityType": "Room",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 32,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 25,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_full_house_deep",
+    "serviceName": "Full House Deep Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_room",
+    "enabledModels": [
+      "per_room"
+    ],
+    "quantityType": "Room",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 120,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 25,
+      "minQty": 1,
+      "maxQty": 7,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_standard_house_cleaning",
+    "serviceName": "Standard House Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_hour",
+    "enabledModels": [
+      "per_hour"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 10,
+      "minQty": 2,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_window_cleaning_ground_floor",
+    "serviceName": "Window Cleaning (Ground Floor)",
+    "category": "Cleaning",
+    "pricingModel": "per_window",
+    "enabledModels": [
+      "per_window"
+    ],
+    "quantityType": "Unit / Item",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 5,
+      "additionalUnitPrice": 10,
+      "minQty": 2,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_oven_cleaning",
+    "serviceName": "Oven Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_move_in",
+    "serviceName": "Move In Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_room",
+    "enabledModels": [
+      "per_room"
+    ],
+    "quantityType": "Room",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 85,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 20,
+      "minQty": 1,
+      "maxQty": 6,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_eot",
+    "serviceName": "End of Tenancy Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_room",
+    "enabledModels": [
+      "per_room"
+    ],
+    "quantityType": "Room",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 110,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 25,
+      "minQty": 1,
+      "maxQty": 6,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_sofa",
+    "serviceName": "Sofa Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 15,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_carpet",
+    "serviceName": "Carpet Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_room",
+    "enabledModels": [
+      "per_room"
+    ],
+    "quantityType": "Room",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 50,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 25,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_window",
+    "serviceName": "Window Cleaning",
+    "category": "Cleaning",
+    "pricingModel": "per_window",
+    "enabledModels": [
+      "per_window"
+    ],
+    "quantityType": "Unit / Item",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 25,
+      "includedQuantity": 5,
+      "additionalUnitPrice": 5,
+      "minQty": 2,
+      "maxQty": 30,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_leak_repair",
+    "serviceName": "Leak Repair",
+    "category": "Plumbing",
+    "pricingModel": "quote",
+    "enabledModels": [
+      "quote"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 45,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_toilet_repair",
+    "serviceName": "Toilet Repair",
+    "category": "Plumbing",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 55,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 0,
+      "minQty": 1,
+      "maxQty": 3,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_tap_install",
+    "serviceName": "Tap Installation",
+    "category": "Plumbing",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 40,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 25,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_minor_plumbing_repairs",
+    "serviceName": "Minor Plumbing Repairs",
+    "category": "Plumbing",
+    "pricingModel": "quote",
+    "enabledModels": [
+      "quote"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_light_install",
+    "serviceName": "Light Installation",
+    "category": "Electrical",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "Unit / Item",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 20,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_cctv_install",
+    "serviceName": "CCTV Installation",
+    "category": "Electrical",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 150,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 40,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_socket_install",
+    "serviceName": "Socket Installation",
+    "category": "Electrical",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "Unit / Item",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 40,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 20,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_electrical_repairs",
+    "serviceName": "Electrical Repairs",
+    "category": "Electrical",
+    "pricingModel": "quote",
+    "enabledModels": [
+      "quote"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_furniture_assembly",
+    "serviceName": "Furniture Assembly",
+    "category": "Handyman",
+    "pricingModel": "per_hour",
+    "enabledModels": [
+      "per_hour"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 35,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 35,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_tv_mounting",
+    "serviceName": "TV Mounting",
+    "category": "Handyman",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 35,
+      "minQty": 1,
+      "maxQty": 4,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_shelf_install",
+    "serviceName": "Shelf Installation",
+    "category": "Handyman",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 30,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 10,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_curtain_blind_installation",
+    "serviceName": "Curtain & Blind Installation",
+    "category": "Handyman",
+    "pricingModel": "per_window",
+    "enabledModels": [
+      "per_window"
+    ],
+    "quantityType": "Unit / Item",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_picture_mirror_hanging",
+    "serviceName": "Picture & Mirror Hanging",
+    "category": "Handyman",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "Unit / Item",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 3,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_interior_paint",
+    "serviceName": "Interior Painting",
+    "category": "Painting",
+    "pricingModel": "per_room",
+    "enabledModels": [
+      "per_room"
+    ],
+    "quantityType": "Room",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 160,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 100,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_wallpaper",
+    "serviceName": "Wallpaper Installation",
+    "category": "Painting",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 75,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 40,
+      "minQty": 1,
+      "maxQty": 8,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_lawn_mowing",
+    "serviceName": "Lawn Mowing",
+    "category": "Gardening",
+    "pricingModel": "per_unit",
+    "enabledModels": [
+      "per_unit"
+    ],
+    "quantityType": "Unit",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 30,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 15,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_hedge_trim",
+    "serviceName": "Hedge Trimming",
+    "category": "Gardening",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 20,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_garden_clean",
+    "serviceName": "Garden Cleaning",
+    "category": "Gardening",
+    "pricingModel": "per_hour",
+    "enabledModels": [
+      "per_hour"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 60,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 25,
+      "minQty": 1,
+      "maxQty": 6,
+      "baseIncludes": ""
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_garden_maintenance",
+    "serviceName": "Garden Maintenance",
+    "category": "Gardening",
+    "pricingModel": "per_hour",
+    "enabledModels": [
+      "per_hour"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 10,
+      "minQty": 2,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_garden_waste_removal",
+    "serviceName": "Garden Waste Removal",
+    "category": "Gardening",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_ironing",
+    "serviceName": "Ironing",
+    "category": "Laundry",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "Unit / Item",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 15,
+      "additionalUnitPrice": 10,
+      "minQty": 5,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_laundry_pickup_delivery",
+    "serviceName": "Laundry Pickup & Delivery",
+    "category": "Laundry",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_moving_help",
+    "serviceName": "Moving Help",
+    "category": "Moving",
+    "pricingModel": "per_hour",
+    "enabledModels": [
+      "per_hour"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 10,
+      "minQty": 2,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_packing_unpacking",
+    "serviceName": "Packing & Unpacking",
+    "category": "Moving",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 10,
+      "additionalUnitPrice": 10,
+      "minQty": 5,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_home_organization",
+    "serviceName": "Home Organization",
+    "category": "Home Services",
+    "pricingModel": "per_hour",
+    "enabledModels": [
+      "per_hour"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 2,
+      "additionalUnitPrice": 10,
+      "minQty": 2,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_home_check_visits",
+    "serviceName": "Home Check Visits",
+    "category": "Home Services",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_plant_watering",
+    "serviceName": "Plant Watering",
+    "category": "Home Services",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_dog_walking",
+    "serviceName": "Dog Walking",
+    "category": "Pet Care",
+    "pricingModel": "per_pet",
+    "enabledModels": [
+      "per_pet"
+    ],
+    "quantityType": "Pet",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_pet_sitting",
+    "serviceName": "Pet Sitting",
+    "category": "Pet Care",
+    "pricingModel": "per_pet",
+    "enabledModels": [
+      "per_pet"
+    ],
+    "quantityType": "Pet",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_mobile_car_wash",
+    "serviceName": "Mobile Car Wash",
+    "category": "Vehicle Care",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "Vehicle",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_haircut_home_service",
+    "serviceName": "Haircut (Home Service)",
+    "category": "Beauty",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_hair_styling",
+    "serviceName": "Hair Styling",
+    "category": "Beauty",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_facial",
+    "serviceName": "Facial",
+    "category": "Beauty",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_waxing",
+    "serviceName": "Waxing",
+    "category": "Beauty",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_threading",
+    "serviceName": "Threading",
+    "category": "Beauty",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_manicure",
+    "serviceName": "Manicure",
+    "category": "Beauty",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_pedicure",
+    "serviceName": "Pedicure",
+    "category": "Beauty",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_makeup_party",
+    "serviceName": "Makeup (Party)",
+    "category": "Beauty",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_bridal_makeup",
+    "serviceName": "Bridal Makeup",
+    "category": "Beauty",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_massage_wellness",
+    "serviceName": "Massage (Wellness)",
+    "category": "Beauty",
+    "pricingModel": "fixed",
+    "enabledModels": [
+      "fixed"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_appliance_installation_non_gas",
+    "serviceName": "Appliance Installation (Non-Gas)",
+    "category": "Appliance",
+    "pricingModel": "per_item",
+    "enabledModels": [
+      "per_item"
+    ],
+    "quantityType": "Unit / Item",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  },
+  {
+    "serviceId": "service_boiler_gas_repairs",
+    "serviceName": "Boiler & Gas Repairs",
+    "category": "Gas Services",
+    "pricingModel": "quote",
+    "enabledModels": [
+      "quote"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_babysitting",
+    "serviceName": "Babysitting",
+    "category": "Childcare",
+    "pricingModel": "per_child",
+    "enabledModels": [
+      "per_child"
+    ],
+    "quantityType": "None / Fixed",
+    "requiresQtySelector": false,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "N/A (Fixed/Hourly without quantity)"
+    }
+  },
+  {
+    "serviceId": "service_elderly_companion_visits",
+    "serviceName": "Elderly Companion Visits",
+    "category": "Care Services",
+    "pricingModel": "per_person",
+    "enabledModels": [
+      "per_person"
+    ],
+    "quantityType": "Person",
+    "requiresQtySelector": true,
+    "providerConfigured": {
+      "basePrice": 45,
+      "includedQuantity": 1,
+      "additionalUnitPrice": 10,
+      "minQty": 1,
+      "maxQty": 5,
+      "baseIncludes": "Standard service"
+    },
+    "customerSideStatus": {
+      "isVisible": false,
+      "canChange": false,
+      "pricingUpdates": false,
+      "checkoutDisplays": false,
+      "issue": "MISSING_QUANTITY_SELECTOR"
+    }
+  }
+]

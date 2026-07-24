@@ -1,0 +1,50 @@
+[
+  {
+    "id": "wallet_3c5f5389cb8c",
+    "providerId": "prov_a7638a30f72d",
+    "balance": 135,
+    "pendingPayouts": 0,
+    "transactions": [
+      {
+        "id": "tx_b0bda0019256",
+        "bookingId": "booking_6a0548912ad6",
+        "type": "credit",
+        "amount": 45,
+        "description": "Earnings for job completion",
+        "timestamp": "2026-07-21T10:39:14.656Z"
+      },
+      {
+        "id": "tx_616923dd15d5",
+        "bookingId": "booking_6a0548912ad6",
+        "type": "credit",
+        "amount": 45,
+        "description": "Earnings for job completion",
+        "timestamp": "2026-07-21T10:39:44.868Z"
+      },
+      {
+        "id": "tx_02578c1ab229",
+        "bookingId": "booking_6a0548912ad6",
+        "type": "credit",
+        "amount": 45,
+        "description": "Earnings for job completion",
+        "timestamp": "2026-07-21T10:40:14.570Z"
+      }
+    ]
+  },
+  {
+    "id": "wallet_ad8e6a9e0708",
+    "providerId": "prov_604238ed197f",
+    "balance": 18,
+    "pendingPayouts": 0,
+    "transactions": [
+      {
+        "id": "tx_5b0b003b236c",
+        "bookingId": "booking_a7ddc415471f",
+        "type": "credit",
+        "amount": 18,
+        "description": "Earnings for job completion",
+        "timestamp": "2026-07-24T10:52:22.861Z"
+      }
+    ]
+  }
+]
