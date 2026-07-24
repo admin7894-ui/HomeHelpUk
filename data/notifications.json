@@ -1,0 +1,322 @@
+[
+  {
+    "id": "notif_416ed0d99445",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Leak Repair job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-21T06:24:17.376Z"
+  },
+  {
+    "id": "notif_15fece49b0d8",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-21T08:06:46.110Z"
+  },
+  {
+    "id": "notif_aa08cac25d1c",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-21T08:18:29.417Z"
+  },
+  {
+    "id": "notif_77cee2fcf9dd",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-21T09:30:46.501Z"
+  },
+  {
+    "id": "notif_7f65981dfdb2",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": true,
+    "createdAt": "2026-07-21T09:30:46.508Z"
+  },
+  {
+    "id": "notif_5106dbf666b4",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": false,
+    "createdAt": "2026-07-21T10:11:47.675Z"
+  },
+  {
+    "id": "notif_c8a15b13e101",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": false,
+    "createdAt": "2026-07-21T10:11:55.699Z"
+  },
+  {
+    "id": "notif_12649ebc8b0f",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": false,
+    "createdAt": "2026-07-21T10:20:26.748Z"
+  },
+  {
+    "id": "notif_f11dc7f4b5a6",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your provider is on the way.",
+    "read": false,
+    "createdAt": "2026-07-21T10:26:09.519Z"
+  },
+  {
+    "id": "notif_dba2bf985db0",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your provider has started the job.",
+    "read": false,
+    "createdAt": "2026-07-21T10:35:47.696Z"
+  },
+  {
+    "id": "notif_9348a2310004",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your booking is complete. Please leave a review!",
+    "read": false,
+    "createdAt": "2026-07-21T10:39:14.662Z"
+  },
+  {
+    "id": "notif_81bae83a83b2",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your booking is complete. Please leave a review!",
+    "read": false,
+    "createdAt": "2026-07-21T10:39:44.871Z"
+  },
+  {
+    "id": "notif_704e391ddc81",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your booking is complete. Please leave a review!",
+    "read": false,
+    "createdAt": "2026-07-21T10:40:14.574Z"
+  },
+  {
+    "id": "notif_733939254c35",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-23T04:55:06.699Z"
+  },
+  {
+    "id": "notif_f2b52cfe24e9",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-23T04:58:13.472Z"
+  },
+  {
+    "id": "notif_dd36df3384d8",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-23T05:00:03.660Z"
+  },
+  {
+    "id": "notif_ed401865220a",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-23T05:08:04.556Z"
+  },
+  {
+    "id": "notif_226927f51b74",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-23T05:11:17.196Z"
+  },
+  {
+    "id": "notif_f3a44c449a06",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": true,
+    "createdAt": "2026-07-23T05:12:00.454Z"
+  },
+  {
+    "id": "notif_6c228ae8cbb7",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": false,
+    "createdAt": "2026-07-23T05:15:15.421Z"
+  },
+  {
+    "id": "notif_9f91e825bdcd",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": false,
+    "createdAt": "2026-07-23T05:15:18.207Z"
+  },
+  {
+    "id": "notif_9d953a56c547",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": false,
+    "createdAt": "2026-07-23T05:15:19.078Z"
+  },
+  {
+    "id": "notif_7df47845c4d1",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": false,
+    "createdAt": "2026-07-23T05:15:22.260Z"
+  },
+  {
+    "id": "notif_f248e095090b",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": true,
+    "createdAt": "2026-07-23T05:15:24.019Z"
+  },
+  {
+    "id": "notif_d051ac14f294",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": true,
+    "createdAt": "2026-07-23T05:42:33.079Z"
+  },
+  {
+    "id": "notif_ebb967a8ca17",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": true,
+    "createdAt": "2026-07-23T07:42:11.105Z"
+  },
+  {
+    "id": "notif_27507c7c1c0d",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": true,
+    "createdAt": "2026-07-23T07:48:37.485Z"
+  },
+  {
+    "id": "notif_f1885ebe73ec",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": true,
+    "createdAt": "2026-07-23T08:41:49.611Z"
+  },
+  {
+    "id": "notif_157d30246da3",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": true,
+    "createdAt": "2026-07-23T08:43:59.716Z"
+  },
+  {
+    "id": "notif_cc442bad731e",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Family Meal Preparation job is available near you.",
+    "read": true,
+    "createdAt": "2026-07-23T08:47:53.915Z"
+  },
+  {
+    "id": "notif_a8152251c9e1",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": true,
+    "createdAt": "2026-07-23T09:02:41.152Z"
+  },
+  {
+    "id": "notif_2c1ba9a361fc",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": true,
+    "createdAt": "2026-07-23T09:50:18.878Z"
+  },
+  {
+    "id": "notif_74636154dc95",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your provider is on the way.",
+    "read": true,
+    "createdAt": "2026-07-24T07:19:50.015Z"
+  },
+  {
+    "id": "notif_a36fd6b8ad58",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-24T09:53:21.845Z"
+  },
+  {
+    "id": "notif_b1442176901b",
+    "userId": "user_721716494171",
+    "title": "New Job Available",
+    "message": "A new Home Cook (Basic Meal Preparation) job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-24T10:47:27.802Z"
+  },
+  {
+    "id": "notif_571739f1f0e3",
+    "userId": "user_576226087a30",
+    "title": "New Job Available",
+    "message": "A new Standard Cleaning job is available near you.",
+    "read": false,
+    "createdAt": "2026-07-24T10:50:31.181Z"
+  },
+  {
+    "id": "notif_5c73a607eb48",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "A provider has been assigned to your booking.",
+    "read": false,
+    "createdAt": "2026-07-24T10:50:39.718Z"
+  },
+  {
+    "id": "notif_6112173d214e",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your provider is on the way.",
+    "read": false,
+    "createdAt": "2026-07-24T10:51:42.901Z"
+  },
+  {
+    "id": "notif_b3f0c17a9845",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your provider has started the job.",
+    "read": false,
+    "createdAt": "2026-07-24T10:52:09.741Z"
+  },
+  {
+    "id": "notif_734a207b4a75",
+    "userId": "user_cde93ce1e126",
+    "title": "Booking Update",
+    "message": "Your booking is complete. Please leave a review!",
+    "read": false,
+    "createdAt": "2026-07-24T10:52:22.864Z"
+  }
+]

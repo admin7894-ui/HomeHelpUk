@@ -1,0 +1,428 @@
+[
+  {
+    "id": "chat_1ff97a4db770",
+    "bookingId": "booking_3d95ecb50c0e",
+    "messages": [
+      {
+        "id": "msg_eaa6b179740b",
+        "senderId": "user_cde93ce1e126",
+        "text": "Hii",
+        "image": null,
+        "timestamp": "2026-07-21T08:23:23.718Z",
+        "read": true
+      },
+      {
+        "id": "msg_536908700aca",
+        "senderId": "user_cde93ce1e126",
+        "text": "Hii",
+        "image": null,
+        "timestamp": "2026-07-23T05:16:05.768Z",
+        "read": true
+      }
+    ],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_home_cook",
+    "bookingDate": "2026-07-21",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "hiddenFor": [
+      "user_721716494171",
+      "user_cde93ce1e126"
+    ]
+  },
+  {
+    "id": "chat_a41e92122541",
+    "bookingId": "booking_6a0548912ad6",
+    "messages": [
+      {
+        "id": "msg_75ec5a7e7a94",
+        "senderId": "user_cde93ce1e126",
+        "text": "hiii",
+        "image": null,
+        "timestamp": "2026-07-21T10:27:19.692Z",
+        "read": true
+      },
+      {
+        "id": "msg_9198830727e6",
+        "senderId": "user_721716494171",
+        "text": "hello",
+        "image": null,
+        "timestamp": "2026-07-21T10:38:57.604Z",
+        "read": true
+      }
+    ],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_leak_repair",
+    "bookingDate": "2026-07-21",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Leak Repair",
+    "hiddenFor": [
+      "user_721716494171",
+      "user_cde93ce1e126"
+    ]
+  },
+  {
+    "id": "chat_1a8ffe9b5224",
+    "bookingId": "booking_ae27c2ee7281",
+    "messages": [],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_home_cook",
+    "bookingDate": "2026-07-24",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "hiddenFor": [
+      "user_721716494171",
+      "user_cde93ce1e126"
+    ]
+  },
+  {
+    "id": "chat_34058cf2e7ed",
+    "bookingId": "booking_414f7b1ae43c",
+    "messages": [
+      {
+        "id": "msg_11c2915fdc3b",
+        "senderId": "user_cde93ce1e126",
+        "text": "Hello",
+        "image": null,
+        "timestamp": "2026-07-23T05:05:18.835Z",
+        "read": true
+      }
+    ],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_home_cook",
+    "bookingDate": "2026-07-23",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "hiddenFor": [
+      "user_721716494171",
+      "user_cde93ce1e126"
+    ]
+  },
+  {
+    "id": "chat_daee2a1a2813",
+    "bookingId": "booking_da13b2fe82aa",
+    "messages": [
+      {
+        "id": "msg_b62a72d7a2af",
+        "senderId": "user_cde93ce1e126",
+        "text": "hiii",
+        "image": null,
+        "timestamp": "2026-07-23T05:12:20.901Z",
+        "read": true
+      },
+      {
+        "id": "msg_ab074c5f5aa0",
+        "senderId": "user_721716494171",
+        "text": "Hello",
+        "image": null,
+        "timestamp": "2026-07-23T05:16:39.204Z",
+        "read": true
+      },
+      {
+        "id": "msg_53b028200fe8",
+        "senderId": "user_cde93ce1e126",
+        "text": "Hii",
+        "image": null,
+        "timestamp": "2026-07-23T05:17:21.899Z",
+        "read": true
+      },
+      {
+        "id": "msg_91174ef19fd3",
+        "senderId": "user_721716494171",
+        "text": "Kaise ho",
+        "image": null,
+        "timestamp": "2026-07-23T05:17:29.353Z",
+        "read": true
+      },
+      {
+        "id": "msg_682ca6373d1b",
+        "senderId": "user_cde93ce1e126",
+        "text": "What are you doing",
+        "image": null,
+        "timestamp": "2026-07-23T05:17:36.279Z",
+        "read": true
+      },
+      {
+        "id": "msg_23b8e0a580a7",
+        "senderId": "user_721716494171",
+        "text": "Nothing much",
+        "image": null,
+        "timestamp": "2026-07-23T05:17:41.876Z",
+        "read": true
+      },
+      {
+        "id": "msg_39cd29233f13",
+        "senderId": "user_721716494171",
+        "text": "When you are coming to office",
+        "image": null,
+        "timestamp": "2026-07-23T05:17:53.244Z",
+        "read": true
+      },
+      {
+        "id": "msg_8043ba35aefd",
+        "senderId": "user_cde93ce1e126",
+        "text": "Hiii",
+        "image": null,
+        "timestamp": "2026-07-23T05:29:37.917Z",
+        "read": true
+      },
+      {
+        "id": "msg_0bab1502b6b8",
+        "senderId": "user_cde93ce1e126",
+        "text": "hii",
+        "image": null,
+        "timestamp": "2026-07-23T05:58:49.863Z",
+        "read": true
+      },
+      {
+        "id": "msg_1ca0a2d41280",
+        "senderId": "user_721716494171",
+        "text": "Chl",
+        "image": null,
+        "timestamp": "2026-07-23T06:01:53.007Z",
+        "read": true
+      },
+      {
+        "id": "msg_269a421d007d",
+        "senderId": "user_cde93ce1e126",
+        "text": "Hii",
+        "image": null,
+        "timestamp": "2026-07-23T06:15:22.366Z",
+        "read": true
+      },
+      {
+        "id": "msg_0abb9dff9727",
+        "senderId": "user_cde93ce1e126",
+        "text": "Helloe",
+        "image": null,
+        "timestamp": "2026-07-23T06:26:48.603Z",
+        "read": true
+      },
+      {
+        "id": "msg_686c30bcbf9c",
+        "senderId": "user_721716494171",
+        "text": "What are you doing",
+        "image": null,
+        "timestamp": "2026-07-23T06:27:04.280Z",
+        "read": true
+      }
+    ],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_home_cook",
+    "bookingDate": "2026-07-23",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "hiddenFor": []
+  },
+  {
+    "id": "chat_5df79f7de8ec",
+    "bookingId": "booking_322cda729296",
+    "messages": [],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_home_cook",
+    "bookingDate": "2026-07-21",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "hiddenFor": [
+      "user_721716494171",
+      "user_cde93ce1e126"
+    ]
+  },
+  {
+    "id": "chat_2005fd19425a",
+    "bookingId": "booking_344d24365b54",
+    "messages": [],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_home_cook",
+    "bookingDate": "2026-07-23",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "hiddenFor": [
+      "user_721716494171",
+      "user_cde93ce1e126"
+    ]
+  },
+  {
+    "id": "chat_46b01dea46ea",
+    "bookingId": "booking_f39c4bfe914a",
+    "messages": [],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_home_cook",
+    "bookingDate": "2026-07-23",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "hiddenFor": [
+      "user_721716494171",
+      "user_cde93ce1e126"
+    ]
+  },
+  {
+    "id": "chat_02441dbd53e9",
+    "bookingId": "booking_3de66798a497",
+    "messages": [],
+    "customerId": "user_cde93ce1e126",
+    "providerId": "prov_a7638a30f72d",
+    "categoryId": "service_home_cook",
+    "bookingDate": "2026-07-23",
+    "bookingTime": "10:00 AM",
+    "customerName": "Ritesh Doijad",
+    "providerName": "Sanskar",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "hiddenFor": [
+      "user_721716494171",
+      "user_cde93ce1e126"
+    ]
+  },
+  {
+    "id": "chat_7a248b67dc29",
+    "bookingId": "booking_47dec5dfe14b",
+    "customerId": "user_cde93ce1e126",
+    "customerName": "Ritesh Doijad",
+    "providerId": "prov_a7638a30f72d",
+    "providerName": "Sanskar",
+    "categoryId": "service_home_cook",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "bookingDate": "2026-07-23",
+    "bookingTime": "12:00 PM",
+    "hiddenFor": [],
+    "messages": []
+  },
+  {
+    "id": "chat_06ad5e994da5",
+    "bookingId": "booking_2967dc5b204f",
+    "customerId": "user_cde93ce1e126",
+    "customerName": "Ritesh Doijad",
+    "providerId": "prov_a7638a30f72d",
+    "providerName": "Sanskar",
+    "categoryId": "service_family_meal_prep",
+    "serviceName": "Family Meal Preparation",
+    "bookingDate": "2026-07-23",
+    "bookingTime": "10:00 AM",
+    "hiddenFor": [],
+    "messages": []
+  },
+  {
+    "id": "chat_2edca5099e8b",
+    "bookingId": "booking_d70989f47491",
+    "customerId": "user_cde93ce1e126",
+    "customerName": "Ritesh Doijad",
+    "providerId": "prov_a7638a30f72d",
+    "providerName": "Sanskar",
+    "categoryId": "service_home_cook",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "bookingDate": "2026-07-24",
+    "bookingTime": "12:00 PM",
+    "hiddenFor": [],
+    "messages": []
+  },
+  {
+    "id": "chat_5fdebb943d1f",
+    "bookingId": "booking_cc123b6471c4",
+    "customerId": "user_f1c3fe0e3457",
+    "customerName": "Mayur",
+    "providerId": "prov_a7638a30f72d",
+    "providerName": "Sanskar",
+    "categoryId": "service_home_cook",
+    "serviceName": "Home Cook (Basic Meal Preparation)",
+    "bookingDate": "2026-07-28",
+    "bookingTime": "10:00 AM",
+    "hiddenFor": [],
+    "messages": [
+      {
+        "id": "msg_95954579436c",
+        "senderId": "user_f1c3fe0e3457",
+        "text": "Hii",
+        "image": null,
+        "timestamp": "2026-07-24T10:47:42.751Z",
+        "read": true
+      },
+      {
+        "id": "msg_e1986d19fab0",
+        "senderId": "user_721716494171",
+        "text": "Bol mayur",
+        "image": null,
+        "timestamp": "2026-07-24T10:48:25.790Z",
+        "read": true
+      },
+      {
+        "id": "msg_60d3d89ae254",
+        "senderId": "user_f1c3fe0e3457",
+        "text": "Kay kart aahe",
+        "image": null,
+        "timestamp": "2026-07-24T10:49:34.587Z",
+        "read": false
+      }
+    ]
+  },
+  {
+    "id": "chat_decd2ec14246",
+    "bookingId": "booking_a7ddc415471f",
+    "customerId": "user_cde93ce1e126",
+    "customerName": "Ritesh Doijad",
+    "providerId": "prov_604238ed197f",
+    "providerName": "Samruddhi ",
+    "categoryId": "service_standard_cleaning",
+    "serviceName": "Standard Cleaning",
+    "bookingDate": "2026-07-24",
+    "bookingTime": "10:00 AM",
+    "hiddenFor": [],
+    "messages": [
+      {
+        "id": "msg_db56ddc49bc9",
+        "senderId": "user_576226087a30",
+        "text": "Hello 👋",
+        "image": null,
+        "timestamp": "2026-07-24T10:50:53.610Z",
+        "read": true
+      },
+      {
+        "id": "msg_f9488e9f3bb7",
+        "senderId": "user_cde93ce1e126",
+        "text": "Bol",
+        "image": null,
+        "timestamp": "2026-07-24T10:51:06.875Z",
+        "read": true
+      },
+      {
+        "id": "msg_62323ab34047",
+        "senderId": "user_576226087a30",
+        "text": "How are you",
+        "image": null,
+        "timestamp": "2026-07-24T10:51:19.742Z",
+        "read": true
+      },
+      {
+        "id": "msg_d16ebcdf8020",
+        "senderId": "user_cde93ce1e126",
+        "text": "Fine",
+        "image": null,
+        "timestamp": "2026-07-24T10:51:29.834Z",
+        "read": true
+      }
+    ]
+  }
+]
