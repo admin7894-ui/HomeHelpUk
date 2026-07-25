@@ -1,47 +1,143 @@
-const fs = require('fs');
-const path = require('path');
-const { findCategoryOrService } = require('../utils/helpers');
-const { findCanonicalService, mergeServiceDetails } = require('../utils/serviceMerger');
+const db = require('../db');
+const { mergeServiceDetails } = require('../utils/serviceMerger');
 
-const categoriesPath = path.join(__dirname, '../data/categories.json');
-const providersPath = path.join(__dirname, '../data/providers.json');
+async function fetchFullCategoriesHierarchy() {
+  const catRes = await db.query('SELECT * FROM categories ORDER BY name ASC');
+  const subRes = await db.query('SELECT * FROM subcategories ORDER BY name ASC');
+  const srvRes = await db.query('SELECT * FROM services ORDER BY name ASC');
 
-exports.getAll = (req, res) => {
-  const categories = JSON.parse(fs.readFileSync(categoriesPath, 'utf-8'));
-  res.json({ success: true, categories });
-};
+  const categories = catRes.rows.map(cat => ({
+    id: cat.id,
+    name: cat.name,
+    icon: cat.icon,
+    price: Number(cat.price),
+    unit: cat.unit,
+    description: cat.description,
+    subcategories: subRes.rows
+      .filter(sub => sub.category_id === cat.id)
+      .map(sub => ({
+        id: sub.id,
+        name: sub.name,
+        services: srvRes.rows
+          .filter(srv => srv.subcategory_id === sub.id || srv.category_id === cat.id)
+          .map(srv => ({
+            id: srv.id,
+            name: srv.name,
+            price: Number(srv.price),
+            unit: srv.unit,
+            duration: srv.duration,
+            description: srv.description,
+            ukTypicalPrice: srv.uk_typical_price,
+            londonPrice: srv.london_price,
+            mvpPrice: Number(srv.price),
+            canaryWharfPrice: srv.canary_wharf_price,
+            baseIncludes: srv.base_includes,
+            additionalCharge: Number(srv.additional_charge),
+            maxQuantity: srv.max_quantity,
+            whatsIncluded: srv.whats_included || [],
+            whatsNotIncluded: srv.whats_not_included || [],
+            addons: srv.addons || [],
+            faqs: srv.faqs || [],
+            pricingRules: srv.pricing_rules || {},
+            dynamicPricing: srv.dynamic_pricing || {}
+          }))
+      }))
+  }));
 
-exports.getById = (req, res) => {
-  const categories = JSON.parse(fs.readFileSync(categoriesPath, 'utf-8'));
-  const category = findCategoryOrService(categories, req.params.id);
-  if (!category) return res.status(404).json({ success: false, message: 'Category or service not found' });
-  res.json({ success: true, category });
-};
+  return categories;
+}
 
-exports.getServiceDetail = (req, res) => {
-  const { serviceId } = req.params;
-  const { providerId } = req.query;
-  const categories = JSON.parse(fs.readFileSync(categoriesPath, 'utf-8'));
-
-  const { service, mainCategory } = findCanonicalService(categories, serviceId);
-  if (!service) {
-    return res.status(404).json({ success: false, message: 'Service not found' });
-  }
-
-  let providerServiceRecord = null;
-  if (providerId) {
-    try {
-      const providers = JSON.parse(fs.readFileSync(providersPath, 'utf-8'));
-      const provider = providers.find(p => p.id === providerId);
-      if (provider && Array.isArray(provider.services)) {
-        providerServiceRecord = provider.services.find(s => s.serviceId === serviceId);
+function findCategoryOrServiceInHierarchy(categories, id) {
+  for (const cat of categories) {
+    if (cat.id === id) return cat;
+    if (cat.subcategories) {
+      for (const sub of cat.subcategories) {
+        if (sub.id === id) return sub;
+        if (sub.services) {
+          for (const service of sub.services) {
+            if (service.id === id) return service;
+          }
+        }
       }
-    } catch (err) {
-      // Ignore provider read error
     }
   }
+  return null;
+}
 
-  const mergedService = mergeServiceDetails(service, providerServiceRecord);
-  res.json({ success: true, service: mergedService, mainCategory });
+function findCanonicalServiceInHierarchy(categories, serviceId) {
+  for (const cat of categories) {
+    if (cat.subcategories) {
+      for (const sub of cat.subcategories) {
+        if (sub.services) {
+          const match = sub.services.find(s => s.id === serviceId);
+          if (match) return { service: match, mainCategory: cat, subCategory: sub };
+        }
+      }
+    }
+  }
+  return { service: null, mainCategory: null, subCategory: null };
+}
+
+exports.getAll = async (req, res) => {
+  try {
+    const categories = await fetchFullCategoriesHierarchy();
+    res.json({ success: true, categories });
+  } catch (err) {
+    console.error('[Categories getAll Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+  }
 };
 
+exports.getById = async (req, res) => {
+  try {
+    const categories = await fetchFullCategoriesHierarchy();
+    const category = findCategoryOrServiceInHierarchy(categories, req.params.id);
+    if (!category) return res.status(404).json({ success: false, message: 'Category or service not found' });
+    res.json({ success: true, category });
+  } catch (err) {
+    console.error('[Categories getById Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch category detail' });
+  }
+};
+
+exports.getServiceDetail = async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const { providerId } = req.query;
+
+    const categories = await fetchFullCategoriesHierarchy();
+    const { service, mainCategory } = findCanonicalServiceInHierarchy(categories, serviceId);
+
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
+
+    let providerServiceRecord = null;
+    if (providerId) {
+      const psRes = await db.query(
+        `SELECT * FROM provider_services WHERE provider_id = $1 AND service_id = $2`,
+        [providerId, serviceId]
+      );
+      if (psRes.rows.length > 0) {
+        const ps = psRes.rows[0];
+        providerServiceRecord = {
+          serviceId: ps.service_id,
+          customPrice: ps.custom_price !== null ? Number(ps.custom_price) : undefined,
+          enabled: ps.enabled,
+          customDescription: ps.custom_description,
+          customWhatsIncluded: ps.custom_whats_included,
+          customWhatsNotIncluded: ps.custom_whats_not_included,
+          customAddOns: ps.custom_addons,
+          customFaqs: ps.custom_faqs,
+          pricingRules: ps.pricing_rules
+        };
+      }
+    }
+
+    const mergedService = mergeServiceDetails(service, providerServiceRecord);
+    res.json({ success: true, service: mergedService, mainCategory });
+  } catch (err) {
+    console.error('[Categories getServiceDetail Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch service detail' });
+  }
+};

@@ -1,32 +1,57 @@
-const fs = require('fs');
-const path = require('path');
+const db = require('../db');
 
-const notificationsPath = path.join(__dirname, '../data/notifications.json');
+exports.getForUser = async (req, res) => {
+  try {
+    if (req.user.id !== req.params.userId) {
+      return res.status(403).json({ success: false, message: 'Access denied: not your notifications' });
+    }
 
-const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf-8'));
-const writeJson = (p, data) => fs.writeFileSync(p, JSON.stringify(data, null, 2));
+    const nRes = await db.query(
+      `SELECT id, user_id as "userId", title, message, read, created_at as "createdAt"
+       FROM notifications
+       WHERE user_id = $1
+       ORDER BY created_at DESC`,
+      [req.params.userId]
+    );
 
-exports.getForUser = (req, res) => {
-  if (req.user.id !== req.params.userId) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your notifications' });
+    const notifications = nRes.rows.map(n => ({
+      ...n,
+      read: Boolean(n.read),
+      createdAt: n.createdAt ? new Date(n.createdAt).toISOString() : new Date().toISOString()
+    }));
+
+    res.json({ success: true, notifications });
+  } catch (err) {
+    console.error('[Notifications getForUser Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch notifications' });
   }
-
-  const notifications = readJson(notificationsPath)
-    .filter((n) => n.userId === req.params.userId)
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  res.json({ success: true, notifications });
 };
 
-exports.markRead = (req, res) => {
-  const notifications = readJson(notificationsPath);
-  const index = notifications.findIndex((n) => n.id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, message: 'Notification not found' });
+exports.markRead = async (req, res) => {
+  try {
+    const nRes = await db.query('SELECT * FROM notifications WHERE id = $1', [req.params.id]);
+    if (nRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Notification not found' });
 
-  if (notifications[index].userId !== req.user.id) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your notification' });
+    const notif = nRes.rows[0];
+    if (notif.user_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Access denied: not your notification' });
+    }
+
+    await db.query('UPDATE notifications SET read = true WHERE id = $1', [req.params.id]);
+
+    res.json({
+      success: true,
+      notification: {
+        id: notif.id,
+        userId: notif.user_id,
+        title: notif.title,
+        message: notif.message,
+        read: true,
+        createdAt: notif.created_at ? new Date(notif.created_at).toISOString() : new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    console.error('[Notifications markRead Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to mark notification as read' });
   }
-
-  notifications[index].read = true;
-  writeJson(notificationsPath, notifications);
-  res.json({ success: true, notification: notifications[index] });
 };

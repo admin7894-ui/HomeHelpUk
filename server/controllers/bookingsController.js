@@ -1,19 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const { generateId, findCategoryOrService, hasTimeOverlap } = require('../utils/helpers');
+const db = require('../db');
+const { generateId, parseTime, hasTimeOverlap } = require('../utils/helpers');
 
-const bookingsPath = path.join(__dirname, '../data/bookings.json');
-const categoriesPath = path.join(__dirname, '../data/categories.json');
-const notificationsPath = path.join(__dirname, '../data/notifications.json');
-const providersPath = path.join(__dirname, '../data/providers.json');
-const usersPath = path.join(__dirname, '../data/users.json');
-
-const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf-8'));
-const writeJson = (p, data) => fs.writeFileSync(p, JSON.stringify(data, null, 2));
-
-const PLATFORM_COMMISSION_PCT = 11; // demo constant — "fairer" positioning vs 15-25% industry norm
-
-// Ordered lifecycle used for the mock live-status tracker
+const PLATFORM_COMMISSION_PCT = 11;
 const STATUS_FLOW = ['pending', 'assigned', 'en_route', 'in_progress', 'completed'];
 
 function sanitizeBookingForResponse(req, booking) {
@@ -25,403 +13,488 @@ function sanitizeBookingForResponse(req, booking) {
   return sanitized;
 }
 
-exports.getAll = (req, res) => {
-  const bookings = readJson(bookingsPath);
-  const categories = readJson(categoriesPath);
-  const { status, category } = req.query;
-
-  const getParentCatId = (serviceId) => {
-    if (serviceId && serviceId.startsWith('cat_')) return serviceId;
-    const c = categories.find(cat => cat.subcategories?.some(sub => sub.services?.some(s => s.id === serviceId)));
-    return c ? c.id : null;
+function formatBookingRow(row) {
+  return {
+    id: row.id,
+    customerId: row.customer_id,
+    providerId: row.provider_id || 'open',
+    categoryId: row.category_id,
+    status: row.status,
+    date: row.date ? new Date(row.date).toISOString().split('T')[0] : row.date,
+    time: row.time,
+    address: row.address,
+    notes: row.notes || '',
+    durationHours: Number(row.duration_hours),
+    serviceQuantity: Number(row.service_quantity) || 1,
+    hourlyRate: Number(row.hourly_rate),
+    serviceFee: Number(row.service_fee),
+    total: Number(row.total),
+    subtotal: Number(row.subtotal),
+    providerPayout: Number(row.provider_payout),
+    pricingBreakdown: row.pricing_breakdown || null,
+    pricingSnapshot: row.pricing_snapshot || null,
+    platformCommissionPct: Number(row.platform_commission_pct),
+    createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    startOtp: row.start_otp,
+    completionOtp: row.completion_otp,
+    photos: row.photos || {},
+    declineRecords: row.decline_records || []
   };
+}
 
-  let result = [];
-  if (req.user && req.user.role === 'customer') {
-    result = bookings.filter((b) => b.customerId === req.user.id);
-  } else if (req.user && req.user.role === 'provider') {
-    const users = readJson(usersPath);
-    const currentUser = users.find((u) => u.id === req.user.id);
-    const pId = currentUser ? currentUser.providerId : null;
+exports.getAll = async (req, res) => {
+  try {
+    const { status, category } = req.query;
+    let queryText = `
+      SELECT b.*, u.name as customer_name
+      FROM bookings b
+      LEFT JOIN users u ON b.customer_id = u.id
+      WHERE 1=1
+    `;
+    const queryParams = [];
 
-    if (pId) {
-      const providers = readJson(providersPath);
-      const provider = providers.find((p) => p.id === pId);
-      const activeCategories = provider ? provider.categories : [];
+    if (req.user && req.user.role === 'customer') {
+      queryParams.push(req.user.id);
+      queryText += ` AND b.customer_id = $${queryParams.length}`;
+    } else if (req.user && req.user.role === 'provider') {
+      const pRes = await db.query('SELECT p.id, p.user_id FROM providers p WHERE p.user_id = $1', [req.user.id]);
+      const pId = pRes.rows[0] ? pRes.rows[0].id : null;
 
-      result = bookings.filter((b) => {
-        const hasDeclined = b.declineRecords && b.declineRecords.some(d => d.providerId === pId);
-        if (hasDeclined) return false;
-        
-        return b.providerId === pId || 
-               (b.providerId === 'open' && activeCategories.includes(getParentCatId(b.categoryId)));
-      });
+      if (!pId) {
+        return res.json({ success: true, bookings: [] });
+      }
+
+      // Fetch active provider categories
+      const catRes = await db.query('SELECT category_id FROM provider_categories WHERE provider_id = $1', [pId]);
+      const activeCategories = catRes.rows.map(r => r.category_id);
+
+      queryParams.push(pId);
+      const pIdx = queryParams.length;
+
+      queryParams.push(activeCategories);
+      const catIdx = queryParams.length;
+
+      queryText += ` AND (
+        b.provider_id = $${pIdx} OR 
+        ((b.provider_id IS NULL OR b.provider_id = 'open') AND (b.category_id = ANY($${catIdx}) OR EXISTS (
+          SELECT 1 FROM services s WHERE s.id = b.category_id AND s.category_id = ANY($${catIdx})
+        )))
+      )`;
     }
-  }
 
-  if (status) {
-    result = result.filter((b) => b.status === status);
-  }
+    if (status) {
+      queryParams.push(status);
+      queryText += ` AND b.status = $${queryParams.length}`;
+    }
 
-  if (category) {
-    result = result.filter((b) => getParentCatId(b.categoryId) === category);
-  }
+    queryText += ` ORDER BY b.created_at DESC`;
 
-  result = [...result].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  const users = readJson(usersPath);
-  res.json({ success: true, bookings: result.map((b) => {
-    const customer = users.find(u => u.id === b.customerId);
-    const sanitized = sanitizeBookingForResponse(req, b);
-    sanitized.customerName = customer ? customer.name : 'Customer';
-    return sanitized;
-  }) });
+    const resBookings = await db.query(queryText, queryParams);
+    let bookings = resBookings.rows.map(row => {
+      const formatted = formatBookingRow(row);
+      formatted.customerName = row.customer_name || 'Customer';
+      return formatted;
+    });
+
+    if (req.user && req.user.role === 'provider') {
+      const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
+      const pId = pRes.rows[0] ? pRes.rows[0].id : null;
+      if (pId) {
+        bookings = bookings.filter(b => {
+          const hasDeclined = b.declineRecords && b.declineRecords.some(d => d.providerId === pId);
+          return !hasDeclined;
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      bookings: bookings.map(b => sanitizeBookingForResponse(req, b))
+    });
+  } catch (err) {
+    console.error('[Bookings getAll Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch bookings' });
+  }
 };
 
-exports.getById = (req, res) => {
-  const bookings = readJson(bookingsPath);
-  const booking = bookings.find((b) => b.id === req.params.id);
-  if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+exports.getById = async (req, res) => {
+  try {
+    const bookingRes = await db.query(
+      `SELECT b.*, u.name as customer_name
+       FROM bookings b
+       LEFT JOIN users u ON b.customer_id = u.id
+       WHERE b.id = $1`,
+      [req.params.id]
+    );
 
-  // Security Check: Is the logged-in user authorized to view this booking?
-  if (req.user.role === 'customer' && booking.customerId !== req.user.id) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your booking' });
-  }
-  if (req.user.role === 'provider') {
-    const users = readJson(usersPath);
-    const currentUser = users.find((u) => u.id === req.user.id);
-    const pId = currentUser ? currentUser.providerId : null;
-    if (booking.providerId !== pId) {
+    if (bookingRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    const row = bookingRes.rows[0];
+    const booking = formatBookingRow(row);
+    booking.customerName = row.customer_name || 'Customer';
+
+    if (req.user.role === 'customer' && booking.customerId !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Access denied: not your booking' });
     }
-  }
+    if (req.user.role === 'provider') {
+      const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
+      const pId = pRes.rows[0] ? pRes.rows[0].id : null;
+      if (booking.providerId !== 'open' && booking.providerId !== pId) {
+        return res.status(403).json({ success: false, message: 'Access denied: not your booking' });
+      }
+    }
 
-  res.json({ success: true, booking: sanitizeBookingForResponse(req, booking) });
+    res.json({ success: true, booking: sanitizeBookingForResponse(req, booking) });
+  } catch (err) {
+    console.error('[Bookings getById Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch booking detail' });
+  }
 };
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   const { customerId, providerId, categoryId, date, time, address, notes, durationHours, serviceQuantity, pricingBreakdown } = req.body;
 
   if (!customerId || !providerId || !categoryId || !date || !time || !address || !durationHours) {
     return res.status(400).json({ success: false, message: 'Missing required booking fields' });
   }
 
-  const categories = readJson(categoriesPath);
-  const providers = readJson(providersPath);
-  const category = findCategoryOrService(categories, categoryId);
-  let provider = null;
-  if (providerId !== 'open') {
-    provider = providers.find((p) => p.id === providerId);
-    if (!provider) return res.status(404).json({ success: false, message: 'Provider not found' });
-  }
+  const client = await db.getClient();
+  try {
+    await client.query('BEGIN');
 
-  const getIncludedQuantity = (baseIncludesStr) => {
-    if (!baseIncludesStr) return 1;
-    const match = baseIncludesStr.match(/(\d+)/g);
-    if (match) {
-      return parseInt(match[match.length - 1], 10);
-    }
-    return 1;
-  };
+    // Calculate timestamps
+    const startTimeMs = parseTime(date, time) || new Date(`${date}T${time}:00`).getTime();
+    const startTimestamp = new Date(startTimeMs).toISOString();
+    const endTimestamp = new Date(startTimeMs + (Number(durationHours) * 60 * 60 * 1000)).toISOString();
 
-  const providerService = provider && provider.services ? provider.services.find(s => s.serviceId === categoryId) : null;
-  const baseServiceRate = (providerService && providerService.customPrice) || (provider && provider.hourlyRate) || (category && category.price) || 20;
-  const baseQuantity = (category && category.unit === 'hr') ? Number(durationHours) : 1;
-  const baseServiceCost = baseServiceRate * baseQuantity;
+    const targetProviderId = (providerId !== 'open' && providerId) ? providerId : null;
 
-  const includedQuantity = getIncludedQuantity(category && category.baseIncludes);
-  const selectedQuantity = Number(serviceQuantity) || 1;
-  const extraQuantity = Math.max(0, selectedQuantity - includedQuantity);
-  const additionalChargeRate = (category && category.additionalCharge) || 0;
-  const additionalQuantityCharge = extraQuantity * additionalChargeRate;
+    // --- CONFLICT & RACE CONDITION CHECK ---
+    if (targetProviderId) {
+      const activeStatuses = ['pending', 'assigned', 'en_route', 'in_progress', 'confirmed', 'accepted'];
+      const conflictRes = await client.query(
+        `SELECT id, date, time, duration_hours as "durationHours"
+         FROM bookings
+         WHERE provider_id = $1
+           AND status = ANY($2)
+           AND (start_timestamp < $4 AND end_timestamp > $3)
+         FOR UPDATE`,
+        [targetProviderId, activeStatuses, startTimestamp, endTimestamp]
+      );
 
-  const subtotal = baseServiceCost + additionalQuantityCharge;
-  const computedServiceFee = Math.round(subtotal * (PLATFORM_COMMISSION_PCT / 100) * 100) / 100;
-  const computedTotal = Math.round((subtotal + computedServiceFee) * 100) / 100;
-
-  const bookings = readJson(bookingsPath);
-
-  // --- CONFLICT CHECK ---
-  if (providerId !== 'open') {
-    const activeStatuses = ['pending', 'assigned', 'en_route', 'in_progress', 'confirmed', 'accepted'];
-    const providerActiveBookings = bookings.filter(b => 
-      b.providerId === providerId && 
-      activeStatuses.includes(b.status)
-    );
-
-    const newBookingTimeSlot = { date, time, durationHours };
-    
-    for (const active of providerActiveBookings) {
-      if (hasTimeOverlap(newBookingTimeSlot, active)) {
+      if (conflictRes.rows.length > 0) {
+        await client.query('ROLLBACK');
         return res.status(409).json({
           success: false,
           message: 'This provider is already booked at this time. Please select another time or provider.'
         });
       }
     }
+
+    // Rates & Calculation
+    let baseServiceRate = 20;
+    const srvRes = await client.query('SELECT price FROM services WHERE id = $1', [categoryId]);
+    if (srvRes.rows.length > 0) {
+      baseServiceRate = Number(srvRes.rows[0].price);
+    }
+
+    if (targetProviderId) {
+      const psRes = await client.query('SELECT custom_price FROM provider_services WHERE provider_id = $1 AND service_id = $2', [targetProviderId, categoryId]);
+      if (psRes.rows.length > 0 && psRes.rows[0].custom_price !== null) {
+        baseServiceRate = Number(psRes.rows[0].custom_price);
+      }
+    }
+
+    const subtotal = pricingBreakdown ? pricingBreakdown.subtotal : (baseServiceRate * Number(durationHours));
+    const serviceFee = pricingBreakdown ? pricingBreakdown.platformFee : (Math.round(subtotal * (PLATFORM_COMMISSION_PCT / 100) * 100) / 100);
+    const total = pricingBreakdown ? pricingBreakdown.total : (Math.round((subtotal + serviceFee) * 100) / 100);
+
+    const bookingId = generateId('booking');
+    const startOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    const completionOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
+    await client.query(
+      `INSERT INTO bookings (
+         id, customer_id, provider_id, category_id, status, date, time,
+         start_timestamp, end_timestamp, address, notes, duration_hours, service_quantity,
+         hourly_rate, subtotal, service_fee, total, provider_payout, platform_commission_pct,
+         start_otp, completion_otp, photos, pricing_breakdown, pricing_snapshot, created_at
+       )
+       VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())`,
+      [
+        bookingId,
+        customerId,
+        targetProviderId,
+        categoryId,
+        date,
+        time,
+        startTimestamp,
+        endTimestamp,
+        address,
+        notes || '',
+        Number(durationHours),
+        Number(serviceQuantity) || 1,
+        baseServiceRate,
+        subtotal,
+        serviceFee,
+        total,
+        subtotal,
+        PLATFORM_COMMISSION_PCT,
+        startOtp,
+        completionOtp,
+        JSON.stringify({}),
+        JSON.stringify(pricingBreakdown || null),
+        JSON.stringify(req.body.pricingSnapshot || null)
+      ]
+    );
+
+    // Send notification to provider if assigned
+    if (targetProviderId) {
+      const pUserRes = await client.query('SELECT user_id FROM providers WHERE id = $1', [targetProviderId]);
+      if (pUserRes.rows.length > 0) {
+        const notifId = generateId('notif');
+        await client.query(
+          `INSERT INTO notifications (id, user_id, title, message, read, created_at)
+           VALUES ($1, $2, 'New Job Available', $3, false, NOW())`,
+          [notifId, pUserRes.rows[0].user_id, `A new service job is available near you.`]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
+    const createdRes = await db.query('SELECT b.*, u.name as customer_name FROM bookings b JOIN users u ON b.customer_id = u.id WHERE b.id = $1', [bookingId]);
+    const formatted = formatBookingRow(createdRes.rows[0]);
+    formatted.customerName = createdRes.rows[0].customer_name;
+
+    res.status(201).json({ success: true, booking: sanitizeBookingForResponse(req, formatted) });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[Bookings create Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to create booking' });
+  } finally {
+    client.release();
   }
-
-  const serviceFee = pricingBreakdown ? pricingBreakdown.platformFee : computedServiceFee;
-  const total = pricingBreakdown ? pricingBreakdown.total : computedTotal;
-  const finalSubtotal = pricingBreakdown ? pricingBreakdown.subtotal : subtotal;
-
-  const booking = {
-    id: generateId('booking'),
-    customerId,
-    providerId,
-    categoryId,
-    status: 'pending',
-    date,
-    time,
-    address,
-    notes: notes || '',
-    durationHours: Number(durationHours),
-    serviceQuantity: Number(serviceQuantity) || 1,
-    hourlyRate: baseServiceRate,
-    serviceFee,
-    total,
-    subtotal: finalSubtotal,
-    providerPayout: finalSubtotal,
-    pricingBreakdown: pricingBreakdown || null,
-    pricingSnapshot: req.body.pricingSnapshot || {
-      pricingModel: (category && category.pricingRules && category.pricingRules.pricingModel) || 'fixed',
-      basePrice: baseServiceRate,
-      includedQuantity,
-      selectedQuantity,
-      additionalQuantity: extraQuantity,
-      additionalUnitPrice: additionalChargeRate,
-      additionalCharges: additionalQuantityCharge,
-      addonsTotal: pricingBreakdown ? pricingBreakdown.addonsTotal || 0 : 0,
-      finalPrice: total
-    },
-    platformCommissionPct: PLATFORM_COMMISSION_PCT,
-    createdAt: new Date().toISOString(),
-    startOtp: Math.floor(1000 + Math.random() * 9000).toString(),
-    completionOtp: Math.floor(1000 + Math.random() * 9000).toString(),
-  };
-
-  bookings.push(booking);
-  writeJson(bookingsPath, bookings);
-
-  // Notify the provider of a new job — mirrors the "live sync" demo moment
-  const notifications = readJson(notificationsPath);
-  const users = readJson(usersPath);
-  const providerUser = users.find((u) => u.providerId === providerId);
-  if (providerUser) {
-    notifications.push({
-      id: generateId('notif'),
-      userId: providerUser.id,
-      title: 'New Job Available',
-      message: `A new ${category.name} job is available near you.`,
-      read: false,
-      createdAt: new Date().toISOString(),
-    });
-    writeJson(notificationsPath, notifications);
-  }
-
-  res.status(201).json({ success: true, booking: sanitizeBookingForResponse(req, booking) });
 };
 
-exports.updateStatus = (req, res) => {
+exports.updateStatus = async (req, res) => {
   const { status, startOtp, completionOtp, photos } = req.body;
-  const bookings = readJson(bookingsPath);
-  const index = bookings.findIndex((b) => b.id === req.params.id);
 
-  if (index === -1) return res.status(404).json({ success: false, message: 'Booking not found' });
   if (!STATUS_FLOW.includes(status)) {
     return res.status(400).json({ success: false, message: `status must be one of: ${STATUS_FLOW.join(', ')}` });
   }
 
-  const booking = bookings[index];
+  const client = await db.getClient();
+  try {
+    await client.query('BEGIN');
 
-  // Security Check: Verify authorization for status transitions
-  const users = readJson(usersPath);
-  const currentUser = users.find((u) => u.id === req.user.id);
-  const pId = currentUser ? currentUser.providerId : null;
+    const bRes = await client.query('SELECT * FROM bookings WHERE id = $1 FOR UPDATE', [req.params.id]);
+    if (bRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
 
-  if (booking.providerId && booking.providerId !== 'open' && req.user.role === 'provider' && booking.providerId !== pId) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your booking' });
+    const booking = bRes.rows[0];
+
+    // Auth verification
+    const pRes = await client.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
+    const pId = pRes.rows[0] ? pRes.rows[0].id : null;
+
+    if (booking.provider_id && booking.provider_id !== 'open' && req.user.role === 'provider' && booking.provider_id !== pId) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ success: false, message: 'Access denied: not your booking' });
+    }
+    if (req.user.role === 'customer' && booking.customer_id !== req.user.id) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ success: false, message: 'Access denied: not your booking' });
+    }
+
+    let updatedProviderId = booking.provider_id;
+
+    if (status === 'assigned' && req.user.role === 'provider') {
+      if (booking.provider_id && booking.provider_id !== 'open' && booking.provider_id !== pId) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: 'Booking is already assigned to another provider' });
+      }
+      if (!pId) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: 'Provider profile not completed' });
+      }
+      updatedProviderId = pId;
+    }
+
+    if (status === 'in_progress') {
+      if (!startOtp) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: 'Start OTP is required to start the job' });
+      }
+      if (booking.start_otp && booking.start_otp !== startOtp) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: 'Invalid start OTP code' });
+      }
+    }
+
+    if (status === 'completed') {
+      if (booking.status === 'completed') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: 'Booking is already marked as completed' });
+      }
+      if (!completionOtp) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: 'Completion OTP is required to finish the job' });
+      }
+      if (booking.completion_otp && booking.completion_otp !== completionOtp) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: 'Invalid completion OTP code' });
+      }
+
+      // Wallet Release Payment with Transaction Safety & Idempotency
+      const providerForWallet = updatedProviderId;
+      if (providerForWallet) {
+        let wRes = await client.query('SELECT * FROM wallets WHERE provider_id = $1 FOR UPDATE', [providerForWallet]);
+        let wallet = wRes.rows[0];
+        if (!wallet) {
+          const wId = generateId('wallet');
+          await client.query(
+            'INSERT INTO wallets (id, provider_id, balance, pending_payouts) VALUES ($1, $2, 0.00, 0.00)',
+            [wId, providerForWallet]
+          );
+          wRes = await client.query('SELECT * FROM wallets WHERE provider_id = $1 FOR UPDATE', [providerForWallet]);
+          wallet = wRes.rows[0];
+        }
+
+        // Check if already credited
+        const txCheck = await client.query(
+          `SELECT id FROM wallet_transactions WHERE wallet_id = $1 AND booking_id = $2 AND type = 'credit'`,
+          [wallet.id, booking.id]
+        );
+
+        if (txCheck.rows.length === 0) {
+          const payout = Number(booking.provider_payout) || Number(booking.subtotal) || (Number(booking.hourly_rate) * Number(booking.duration_hours));
+          await client.query(
+            `UPDATE wallets SET balance = balance + $1, updated_at = NOW() WHERE id = $2`,
+            [payout, wallet.id]
+          );
+
+          const txId = generateId('tx');
+          await client.query(
+            `INSERT INTO wallet_transactions (id, wallet_id, booking_id, type, amount, status, description, timestamp)
+             VALUES ($1, $2, $3, 'credit', $4, 'completed', 'Earnings for job completion', NOW())`,
+            [txId, wallet.id, booking.id, payout]
+          );
+        }
+      }
+    }
+
+    const mergedPhotos = photos ? { ...booking.photos, ...photos } : booking.photos;
+
+    await client.query(
+      `UPDATE bookings
+       SET status = $1, provider_id = $2, photos = $3, updated_at = NOW()
+       WHERE id = $4`,
+      [status, updatedProviderId, JSON.stringify(mergedPhotos), booking.id]
+    );
+
+    // Send Customer Notification
+    const statusMessages = {
+      assigned: 'A provider has been assigned to your booking.',
+      en_route: 'Your provider is on the way.',
+      in_progress: 'Your provider has started the job.',
+      completed: 'Your booking is complete. Please leave a review!',
+    };
+
+    if (statusMessages[status]) {
+      const notifId = generateId('notif');
+      await client.query(
+        `INSERT INTO notifications (id, user_id, title, message, read, created_at)
+         VALUES ($1, $2, 'Booking Update', $3, false, NOW())`,
+        [notifId, booking.customer_id, statusMessages[status]]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    const updatedRes = await db.query(
+      `SELECT b.*, u.name as customer_name FROM bookings b JOIN users u ON b.customer_id = u.id WHERE b.id = $1`,
+      [booking.id]
+    );
+    const formatted = formatBookingRow(updatedRes.rows[0]);
+    formatted.customerName = updatedRes.rows[0].customer_name;
+
+    res.json({ success: true, booking: sanitizeBookingForResponse(req, formatted) });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[Bookings updateStatus Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to update booking status' });
+  } finally {
+    client.release();
   }
-  if (req.user.role === 'customer' && booking.customerId !== req.user.id) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your booking' });
-  }
+};
 
-  // If status is transitioning to 'assigned', associate the booking with the logged-in provider
-  if (status === 'assigned' && req.user && req.user.role === 'provider') {
-    if (booking.providerId !== 'open' && booking.providerId !== pId) {
-      return res.status(400).json({ success: false, message: 'Booking is already assigned to another provider' });
+exports.decline = async (req, res) => {
+  try {
+    const { reason, customReason } = req.body;
+    if (req.user.role !== 'provider') {
+      return res.status(403).json({ success: false, message: 'Only providers can decline jobs' });
     }
 
-    const providers = readJson(providersPath);
-    const provider = providers.find((p) => p.id === pId);
-    
-    if (!provider) {
-      return res.status(400).json({ success: false, message: 'Provider profile not completed' });
-    }
+    const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
+    const pId = pRes.rows[0] ? pRes.rows[0].id : null;
+    if (!pId) return res.status(403).json({ success: false, message: 'Access denied' });
 
-    const hasCategory = provider.categories && provider.categories.includes(booking.categoryId);
-    const hasService = provider.services && provider.services.some(s => s.serviceId === booking.categoryId);
+    const bRes = await db.query('SELECT decline_records FROM bookings WHERE id = $1', [req.params.id]);
+    if (bRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
 
-    if (!hasCategory && !hasService) {
-      return res.status(403).json({ success: false, message: 'Provider does not offer this service category' });
-    }
+    let declineRecords = bRes.rows[0].decline_records || [];
+    if (!Array.isArray(declineRecords)) declineRecords = [];
 
-    booking.providerId = provider.id;
-  }
-
-  // If status is transitioning to 'in_progress', verify startOtp if provided
-  if (status === 'in_progress') {
-    if (!startOtp) {
-      return res.status(400).json({ success: false, message: 'Start OTP is required to start the job' });
-    }
-    if (booking.startOtp && booking.startOtp !== startOtp) {
-      return res.status(400).json({ success: false, message: 'Invalid start OTP code' });
-    }
-  }
-
-  // If status is transitioning to 'completed', verify completionOtp if provided
-  if (status === 'completed') {
-    if (booking.status === 'completed') {
-      return res.status(400).json({ success: false, message: 'Booking is already marked as completed' });
-    }
-
-    if (!completionOtp) {
-      return res.status(400).json({ success: false, message: 'Completion OTP is required to finish the job' });
-    }
-    if (booking.completionOtp && booking.completionOtp !== completionOtp) {
-      return res.status(400).json({ success: false, message: 'Invalid completion OTP code' });
-    }
-
-    // Release payment to provider's wallet with Idempotency & Auto-Creation
-    const walletsPath = path.join(__dirname, '../data/wallets.json');
-    const wallets = fs.existsSync(walletsPath) ? JSON.parse(fs.readFileSync(walletsPath, 'utf-8')) : [];
-    const providerId = booking.providerId;
-
-    let wallet = wallets.find((w) => w.providerId === providerId);
-    if (!wallet) {
-      wallet = {
-        id: generateId('wallet'),
-        providerId: providerId,
-        balance: 0.00,
-        pendingPayouts: 0.00,
-        transactions: []
-      };
-      wallets.push(wallet);
-    }
-
-    // Idempotency check: Ensure this bookingId has not already been credited to the wallet
-    const alreadyCredited = wallet.transactions.some(tx => tx.bookingId === booking.id && tx.type === 'credit');
-    if (!alreadyCredited) {
-      const payout = booking.providerPayout || booking.subtotal || (booking.hourlyRate * booking.durationHours);
-      wallet.balance = Math.round((wallet.balance + payout) * 100) / 100;
-      wallet.transactions.push({
-        id: generateId('tx'),
-        bookingId: booking.id,
-        type: 'credit',
-        amount: payout,
-        description: `Earnings for job completion`,
-        timestamp: new Date().toISOString()
+    const alreadyDeclined = declineRecords.some(d => d.providerId === pId);
+    if (!alreadyDeclined) {
+      declineRecords.push({
+        providerId: pId,
+        reason: reason || 'Not specified',
+        customReason: customReason || null,
+        declinedAt: new Date().toISOString()
       });
-      fs.writeFileSync(walletsPath, JSON.stringify(wallets, null, 2));
+
+      await db.query('UPDATE bookings SET decline_records = $1 WHERE id = $2', [JSON.stringify(declineRecords), req.params.id]);
     }
+
+    res.json({ success: true, message: 'Job declined successfully' });
+  } catch (err) {
+    console.error('[Bookings decline Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to decline booking' });
   }
-
-  // Update fields if provided
-  booking.status = status;
-  if (photos) {
-    booking.photos = { ...booking.photos, ...photos };
-  }
-
-  writeJson(bookingsPath, bookings);
-
-  const notifications = readJson(notificationsPath);
-  const customerUser = users.find((u) => u.id === booking.customerId);
-  const statusMessages = {
-    assigned: 'A provider has been assigned to your booking.',
-    en_route: 'Your provider is on the way.',
-    in_progress: 'Your provider has started the job.',
-    completed: 'Your booking is complete. Please leave a review!',
-  };
-  if (customerUser && statusMessages[status]) {
-    notifications.push({
-      id: generateId('notif'),
-      userId: customerUser.id,
-      title: 'Booking Update',
-      message: statusMessages[status],
-      read: false,
-      createdAt: new Date().toISOString(),
-    });
-    writeJson(notificationsPath, notifications);
-  }
-
-  res.json({ success: true, booking: sanitizeBookingForResponse(req, bookings[index]) });
 };
 
-exports.decline = (req, res) => {
-  const { reason, customReason } = req.body;
-  const bookings = readJson(bookingsPath);
-  const index = bookings.findIndex((b) => b.id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, message: 'Booking not found' });
-  
-  if (req.user.role !== 'provider') {
-    return res.status(403).json({ success: false, message: 'Only providers can decline jobs' });
-  }
+exports.getDeclined = async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'provider') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
 
-  const users = readJson(usersPath);
-  const currentUser = users.find((u) => u.id === req.user.id);
-  const pId = currentUser ? currentUser.providerId : null;
-  
-  if (!pId) {
-    return res.status(403).json({ success: false, message: 'Access denied' });
-  }
+    const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
+    const pId = pRes.rows[0] ? pRes.rows[0].id : null;
+    if (!pId) return res.status(403).json({ success: false, message: 'Access denied' });
 
-  const booking = bookings[index];
-  if (!booking.declineRecords) booking.declineRecords = [];
-  
-  const alreadyDeclined = booking.declineRecords.find(d => d.providerId === pId);
-  if (!alreadyDeclined) {
-    booking.declineRecords.push({
-      providerId: pId,
-      reason: reason || 'Not specified',
-      customReason: customReason || null,
-      declinedAt: new Date().toISOString()
+    const bRes = await db.query(
+      `SELECT b.*, u.name as customer_name
+       FROM bookings b
+       LEFT JOIN users u ON b.customer_id = u.id
+       WHERE b.decline_records @> jsonb_build_array(jsonb_build_object('providerId', $1::text))`
+    );
+
+    const bookings = bRes.rows.map(row => {
+      const formatted = formatBookingRow(row);
+      formatted.customerName = row.customer_name || 'Customer';
+      return sanitizeBookingForResponse(req, formatted);
     });
+
+    res.json({ success: true, bookings });
+  } catch (err) {
+    console.error('[Bookings getDeclined Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch declined bookings' });
   }
-
-  writeJson(bookingsPath, bookings);
-  res.json({ success: true, message: 'Job declined successfully' });
-};
-
-exports.getDeclined = (req, res) => {
-  if (!req.user || req.user.role !== 'provider') {
-    return res.status(403).json({ success: false, message: 'Access denied' });
-  }
-
-  const users = readJson(usersPath);
-  const currentUser = users.find((u) => u.id === req.user.id);
-  const pId = currentUser ? currentUser.providerId : null;
-  
-  if (!pId) {
-    return res.status(403).json({ success: false, message: 'Access denied' });
-  }
-
-  const bookings = readJson(bookingsPath);
-  const declinedJobs = bookings.filter(b => b.declineRecords && b.declineRecords.some(d => d.providerId === pId));
-  
-  const sorted = declinedJobs.sort((a, b) => {
-    const rA = a.declineRecords.find(d => d.providerId === pId);
-    const rB = b.declineRecords.find(d => d.providerId === pId);
-    return new Date(rB.declinedAt) - new Date(rA.declinedAt);
-  });
-
-  res.json({ 
-    success: true, 
-    bookings: sorted.map((b) => {
-      const customer = users.find(u => u.id === b.customerId);
-      const sanitized = sanitizeBookingForResponse(req, b);
-      sanitized.customerName = customer ? customer.name : 'Customer';
-      return sanitized;
-    }) 
-  });
 };
 
 exports.getStatusFlow = (req, res) => {

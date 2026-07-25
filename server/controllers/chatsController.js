@@ -1,228 +1,275 @@
-const fs = require('fs');
-const path = require('path');
+const db = require('../db');
 const { generateId } = require('../utils/helpers');
 
-const chatsPath = path.join(__dirname, '../data/chats.json');
+async function getFormattedChat(conversationId) {
+  const cRes = await db.query('SELECT * FROM conversations WHERE id = $1', [conversationId]);
+  if (cRes.rows.length === 0) return null;
+  const c = cRes.rows[0];
 
-const readJson = (p) => {
-  if (!fs.existsSync(p)) fs.writeFileSync(p, '[]');
-  return JSON.parse(fs.readFileSync(p, 'utf-8'));
-};
-const writeJson = (p, data) => fs.writeFileSync(p, JSON.stringify(data, null, 2));
+  const mRes = await db.query(
+    `SELECT id, sender_id as "senderId", text, image_url as image, read, timestamp
+     FROM messages
+     WHERE conversation_id = $1
+     ORDER BY timestamp ASC`,
+    [c.id]
+  );
 
-exports.getChats = (req, res) => {
-  const chats = readJson(chatsPath);
-  const usersPath = path.join(__dirname, '../data/users.json');
-  const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
-  
-  const currentUser = users.find((u) => u.id === req.user.id);
-  if (!currentUser) return res.status(404).json({ success: false, message: 'User not found' });
-  
-  const isCustomer = req.user.role === 'customer';
-  
-  // Filter chats by the current user's role and ID, and exclude deleted chats
-  const myChats = chats.filter(c => {
-    if (c.hiddenFor && c.hiddenFor.includes(req.user.id)) return false;
-    if (isCustomer) return c.customerId === currentUser.id;
-    return c.providerId === currentUser.providerId; // provider uses providerId (e.g. prov_xyz)
-  });
-  
-  let unreadTotal = 0;
-  const conversations = myChats.map(chat => {
-    let unreadCount = 0;
-    let lastMessage = null;
-    let lastMessageTime = null;
-    
-    if (chat.messages && chat.messages.length > 0) {
-      lastMessage = chat.messages[chat.messages.length - 1].text;
-      lastMessageTime = chat.messages[chat.messages.length - 1].timestamp;
-      
-      // Calculate unread count (messages sent by the other party that are not read)
-      unreadCount = chat.messages.filter(m => m.senderId !== req.user.id && !m.read).length;
-      unreadTotal += unreadCount;
-    }
+  // Fetch names
+  const custRes = await db.query('SELECT name FROM users WHERE id = $1', [c.customer_id]);
+  const customerName = custRes.rows[0] ? custRes.rows[0].name : 'Unknown Customer';
 
-    return {
-      bookingId: chat.bookingId,
-      contactName: isCustomer ? chat.providerName : chat.customerName,
-      contactAvatar: null, // Since we didn't migrate avatar, frontend handles fallback
-      categoryId: chat.categoryId,
-      serviceName: chat.serviceName,
-      bookingDate: chat.bookingDate,
-      bookingTime: chat.bookingTime,
-      lastMessage,
-      lastMessageTime,
-      unreadCount
-    };
-  });
-  
-  // Sort by most recent message, then by booking date
-  conversations.sort((a, b) => {
-    if (a.lastMessageTime && b.lastMessageTime) {
-      return new Date(b.lastMessageTime) - new Date(a.lastMessageTime);
-    }
-    if (a.lastMessageTime) return -1;
-    if (b.lastMessageTime) return 1;
-    return 0;
-  });
+  const provRes = await db.query(
+    'SELECT u.name FROM providers p JOIN users u ON p.user_id = u.id WHERE p.id = $1',
+    [c.provider_id]
+  );
+  const providerName = provRes.rows[0] ? provRes.rows[0].name : 'Unknown Provider';
 
-  res.json({ success: true, conversations, unreadTotal });
-};
-
-// Helper for generating new chat context
-const { findCategoryOrService } = require('../utils/helpers');
-const categoriesPath = path.join(__dirname, '../data/categories.json');
-
-const generateNewChat = (booking, users) => {
-  const categories = JSON.parse(fs.readFileSync(categoriesPath, 'utf-8'));
-  const customer = users.find(u => u.id === booking.customerId);
-  const provider = users.find(u => u.providerId === booking.providerId);
-  const service = findCategoryOrService(categories, booking.categoryId);
-  
   return {
-    id: generateId('chat'),
-    bookingId: booking.id,
-    customerId: booking.customerId,
-    customerName: customer ? customer.name : 'Unknown Customer',
-    providerId: booking.providerId,
-    providerName: provider ? provider.name : 'Unknown Provider',
-    categoryId: booking.categoryId,
-    serviceName: service ? service.name : 'Unknown Service',
-    bookingDate: booking.date,
-    bookingTime: booking.time,
-    hiddenFor: [],
-    messages: []
+    id: c.id,
+    bookingId: c.booking_id,
+    customerId: c.customer_id,
+    customerName,
+    providerId: c.provider_id,
+    providerName,
+    categoryId: c.category_id,
+    serviceName: c.service_name || '',
+    bookingDate: c.booking_date ? new Date(c.booking_date).toISOString().split('T')[0] : c.booking_date,
+    bookingTime: c.booking_time || '',
+    hiddenFor: c.hidden_for || [],
+    messages: mRes.rows.map(m => ({
+      ...m,
+      read: Boolean(m.read),
+      timestamp: m.timestamp ? new Date(m.timestamp).toISOString() : new Date().toISOString()
+    }))
   };
-};
+}
 
-exports.getChat = (req, res) => {
-  const chats = readJson(chatsPath);
-  const { bookingId } = req.params;
-
-  // Security Check: Is the user authorized to view this chat?
-  const bookingsPath = path.join(__dirname, '../data/bookings.json');
-  const usersPath = path.join(__dirname, '../data/users.json');
-  const bookings = JSON.parse(fs.readFileSync(bookingsPath, 'utf-8'));
-  const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
-  
-  const booking = bookings.find((b) => b.id === bookingId);
-  if (!booking) {
-    return res.status(404).json({ success: false, message: 'Booking not found' });
+async function ensureConversationExists(bookingId) {
+  let cRes = await db.query('SELECT id FROM conversations WHERE booking_id = $1', [bookingId]);
+  if (cRes.rows.length > 0) {
+    return cRes.rows[0].id;
   }
 
-  const currentUser = users.find((u) => u.id === req.user.id);
-  const pId = currentUser ? currentUser.providerId : null;
+  // Fetch booking details
+  const bRes = await db.query('SELECT * FROM bookings WHERE id = $1', [bookingId]);
+  if (bRes.rows.length === 0) return null;
+  const b = bRes.rows[0];
 
-  if (req.user.role === 'customer' && booking.customerId !== req.user.id) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
-  }
-  if (req.user.role === 'provider' && booking.providerId !== pId) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
-  }
-
-  let chat = chats.find((c) => c.bookingId === bookingId);
-  if (!chat) {
-    chat = generateNewChat(booking, users);
-    chats.push(chat);
-    writeJson(chatsPath, chats);
+  // Fetch service name
+  let serviceName = 'Service';
+  const srvRes = await db.query('SELECT name FROM services WHERE id = $1', [b.category_id]);
+  if (srvRes.rows.length > 0) {
+    serviceName = srvRes.rows[0].name;
   }
 
-  res.json({ success: true, chat });
-};
+  const convId = generateId('chat');
+  await db.query(
+    `INSERT INTO conversations (id, booking_id, customer_id, provider_id, category_id, service_name, booking_date, booking_time, hidden_for)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, '[]'::jsonb)`,
+    [convId, b.id, b.customer_id, b.provider_id || '', b.category_id, serviceName, b.date, b.time]
+  );
 
-exports.sendMessage = (req, res) => {
-  const { bookingId } = req.params;
-  const { text, image } = req.body;
+  return convId;
+}
 
-  if (!text && !image) {
-    return res.status(400).json({ success: false, message: 'Message text or image is required' });
-  }
+exports.getChats = async (req, res) => {
+  try {
+    const isCustomer = req.user.role === 'customer';
+    let pId = null;
+    if (!isCustomer) {
+      const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
+      pId = pRes.rows[0] ? pRes.rows[0].id : null;
+    }
 
-  // Security Check: Is the user authorized to send messages in this chat?
-  const bookingsPath = path.join(__dirname, '../data/bookings.json');
-  const usersPath = path.join(__dirname, '../data/users.json');
-  const bookings = JSON.parse(fs.readFileSync(bookingsPath, 'utf-8'));
-  const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
-  
-  const booking = bookings.find((b) => b.id === bookingId);
-  if (!booking) {
-    return res.status(404).json({ success: false, message: 'Booking not found' });
-  }
+    let convQuery = `SELECT * FROM conversations WHERE 1=1`;
+    const params = [];
 
-  const currentUser = users.find((u) => u.id === req.user.id);
-  const pId = currentUser ? currentUser.providerId : null;
+    if (isCustomer) {
+      params.push(req.user.id);
+      convQuery += ` AND customer_id = $${params.length}`;
+    } else {
+      if (!pId) return res.json({ success: true, conversations: [], unreadTotal: 0 });
+      params.push(pId);
+      convQuery += ` AND provider_id = $${params.length}`;
+    }
 
-  if (req.user.role === 'customer' && booking.customerId !== req.user.id) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
-  }
-  if (req.user.role === 'provider' && booking.providerId !== pId) {
-    return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
-  }
-
-  const chats = readJson(chatsPath);
-  const index = chats.findIndex((c) => c.bookingId === bookingId);
-
-  let chat;
-  if (index === -1) {
-    chat = generateNewChat(booking, users);
-    chats.push(chat);
-  } else {
-    chat = chats[index];
-    // A new message means the conversation is active again.
-    // We clear hiddenFor so both the sender and recipient can see the new activity.
-    chat.hiddenFor = [];
-  }
-
-  const newMessage = {
-    id: generateId('msg'),
-    senderId: req.user.id,
-    text: text || '',
-    image: image || null,
-    timestamp: new Date().toISOString(),
-    read: false
-  };
-
-  chat.messages.push(newMessage);
-  writeJson(chatsPath, chats);
-
-  res.status(201).json({ success: true, message: newMessage });
-};
-
-exports.markAsRead = (req, res) => {
-  const { bookingId } = req.params;
-  const chats = readJson(chatsPath);
-  const index = chats.findIndex((c) => c.bookingId === bookingId);
-
-  if (index !== -1) {
-    const chat = chats[index];
-    chat.messages.forEach((m) => {
-      if (m.senderId !== req.user.id) {
-        m.read = true;
-      }
+    const convRes = await db.query(convQuery, params);
+    let myChats = convRes.rows.filter(c => {
+      const hiddenFor = c.hidden_for || [];
+      return !hiddenFor.includes(req.user.id);
     });
-    writeJson(chatsPath, chats);
+
+    let unreadTotal = 0;
+    const conversations = [];
+
+    for (const chat of myChats) {
+      const formatted = await getFormattedChat(chat.id);
+      if (!formatted) continue;
+
+      let unreadCount = 0;
+      let lastMessage = null;
+      let lastMessageTime = null;
+
+      if (formatted.messages && formatted.messages.length > 0) {
+        const lastMsg = formatted.messages[formatted.messages.length - 1];
+        lastMessage = lastMsg.text;
+        lastMessageTime = lastMsg.timestamp;
+
+        unreadCount = formatted.messages.filter(m => m.senderId !== req.user.id && !m.read).length;
+        unreadTotal += unreadCount;
+      }
+
+      conversations.push({
+        bookingId: formatted.bookingId,
+        contactName: isCustomer ? formatted.providerName : formatted.customerName,
+        contactAvatar: null,
+        categoryId: formatted.categoryId,
+        serviceName: formatted.serviceName,
+        bookingDate: formatted.bookingDate,
+        bookingTime: formatted.bookingTime,
+        lastMessage,
+        lastMessageTime,
+        unreadCount
+      });
+    }
+
+    conversations.sort((a, b) => {
+      if (a.lastMessageTime && b.lastMessageTime) {
+        return new Date(b.lastMessageTime) - new Date(a.lastMessageTime);
+      }
+      if (a.lastMessageTime) return -1;
+      if (b.lastMessageTime) return 1;
+      return 0;
+    });
+
+    res.json({ success: true, conversations, unreadTotal });
+  } catch (err) {
+    console.error('[Chats getChats Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch conversations' });
   }
-  res.json({ success: true, message: 'Messages marked as read' });
 };
 
-exports.deleteChat = (req, res) => {
-  const { bookingId } = req.params;
-  const chats = readJson(chatsPath);
-  const chat = chats.find(c => c.bookingId === bookingId);
-  
-  if (!chat) {
-    return res.status(404).json({ success: false, message: 'Chat not found' });
-  }
+exports.getChat = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
 
-  if (req.user.role === 'customer' && chat.customerId !== req.user.id) {
-    return res.status(403).json({ success: false, message: 'Access denied' });
+    const bRes = await db.query('SELECT customer_id, provider_id FROM bookings WHERE id = $1', [bookingId]);
+    if (bRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
+    const b = bRes.rows[0];
+
+    const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
+    const pId = pRes.rows[0] ? pRes.rows[0].id : null;
+
+    if (req.user.role === 'customer' && b.customer_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
+    }
+    if (req.user.role === 'provider' && b.provider_id !== pId) {
+      return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
+    }
+
+    const convId = await ensureConversationExists(bookingId);
+    if (!convId) return res.status(404).json({ success: false, message: 'Chat conversation could not be initialized' });
+
+    const chat = await getFormattedChat(convId);
+    res.json({ success: true, chat });
+  } catch (err) {
+    console.error('[Chats getChat Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch chat conversation' });
   }
-  
-  if (!chat.hiddenFor) chat.hiddenFor = [];
-  if (!chat.hiddenFor.includes(req.user.id)) {
-    chat.hiddenFor.push(req.user.id);
-    writeJson(chatsPath, chats);
+};
+
+exports.sendMessage = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { text, image } = req.body;
+
+    if (!text && !image) {
+      return res.status(400).json({ success: false, message: 'Message text or image is required' });
+    }
+
+    const bRes = await db.query('SELECT customer_id, provider_id FROM bookings WHERE id = $1', [bookingId]);
+    if (bRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
+    const b = bRes.rows[0];
+
+    const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
+    const pId = pRes.rows[0] ? pRes.rows[0].id : null;
+
+    if (req.user.role === 'customer' && b.customer_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
+    }
+    if (req.user.role === 'provider' && b.provider_id !== pId) {
+      return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
+    }
+
+    const convId = await ensureConversationExists(bookingId);
+    await db.query(`UPDATE conversations SET hidden_for = '[]'::jsonb, updated_at = NOW() WHERE id = $1`, [convId]);
+
+    const msgId = generateId('msg');
+    const nowIso = new Date().toISOString();
+    await db.query(
+      `INSERT INTO messages (id, conversation_id, sender_id, text, image_url, read, timestamp)
+       VALUES ($1, $2, $3, $4, $5, false, $6)`,
+      [msgId, convId, req.user.id, text || '', image || null, nowIso]
+    );
+
+    const newMessage = {
+      id: msgId,
+      senderId: req.user.id,
+      text: text || '',
+      image: image || null,
+      timestamp: nowIso,
+      read: false
+    };
+
+    res.status(201).json({ success: true, message: newMessage });
+  } catch (err) {
+    console.error('[Chats sendMessage Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to send message' });
   }
-  
-  res.json({ success: true, message: 'Chat deleted successfully' });
+};
+
+exports.markAsRead = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const convRes = await db.query('SELECT id FROM conversations WHERE booking_id = $1', [bookingId]);
+    if (convRes.rows.length > 0) {
+      const convId = convRes.rows[0].id;
+      await db.query(
+        `UPDATE messages SET read = true WHERE conversation_id = $1 AND sender_id != $2`,
+        [convId, req.user.id]
+      );
+    }
+    res.json({ success: true, message: 'Messages marked as read' });
+  } catch (err) {
+    console.error('[Chats markAsRead Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to mark messages as read' });
+  }
+};
+
+exports.deleteChat = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const convRes = await db.query('SELECT id, customer_id, hidden_for FROM conversations WHERE booking_id = $1', [bookingId]);
+    if (convRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Chat not found' });
+    }
+
+    const conv = convRes.rows[0];
+    if (req.user.role === 'customer' && conv.customer_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    let hiddenFor = conv.hidden_for || [];
+    if (!Array.isArray(hiddenFor)) hiddenFor = [];
+
+    if (!hiddenFor.includes(req.user.id)) {
+      hiddenFor.push(req.user.id);
+      await db.query('UPDATE conversations SET hidden_for = $1 WHERE id = $2', [JSON.stringify(hiddenFor), conv.id]);
+    }
+
+    res.json({ success: true, message: 'Chat deleted successfully' });
+  } catch (err) {
+    console.error('[Chats deleteChat Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to delete chat' });
+  }
 };

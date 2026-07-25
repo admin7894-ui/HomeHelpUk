@@ -28,8 +28,14 @@ app.get('/', (req, res) => {
   res.json({ success: true, message: 'HomeHelpUK API (POC / mock backend) is running' });
 });
 
-app.get('/health', (req, res) => {
-  res.json({ success: true, status: 'ok' });
+app.get('/health', async (req, res) => {
+  try {
+    const db = require('./db');
+    await db.query('SELECT 1');
+    res.json({ success: true, status: 'ok', db: 'connected' });
+  } catch (err) {
+    res.status(500).json({ success: false, status: 'error', db: 'disconnected', message: err.message });
+  }
 });
 
 app.use('/api/auth', authRoutes);
