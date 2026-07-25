@@ -7,11 +7,11 @@ if (!connectionString && process.env.NODE_ENV === 'production') {
   console.error('[PostgreSQL Error] CRITICAL: DATABASE_URL environment variable is missing in production!');
 }
 
+const useSsl = String(process.env.DATABASE_SSL || 'false').toLowerCase() === 'true';
+
 const pool = new Pool({
   connectionString: connectionString || 'postgresql://postgres:postgres@localhost:5432/homehelpuk',
-  ssl: (process.env.NODE_ENV === 'production' || (connectionString && connectionString.includes('render.com')))
-    ? { rejectUnauthorized: false }
-    : false,
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
