@@ -10,7 +10,7 @@ export const CATEGORY_IMAGES = {
   'cat_electrical': 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&q=80&slot=4', // Circuit breaker
   'cat_handyman': 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=800&q=80&slot=5', // Drilling & tools
   'cat_painting': 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800&q=80&slot=6', // Paint roller & wall
-  'cat_gardening': 'https://images.unsplash.com/photo-1558904541-efa8c196b27d?w=800&q=80&slot=7', // Lawn mowing
+  'cat_gardening': 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&q=80', // Beautiful lawn & garden care
   'cat_laundry': 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=800&q=80&slot=8', // Ironing & laundry
   'cat_moving': 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80&slot=9', // Moving boxes
   'cat_home_services': 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80&slot=10', // Living room clean

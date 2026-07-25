@@ -25,6 +25,19 @@ export const INITIAL_DRAFT = {
   couponDiscount: 0,
 };
 
+const LAUNCH_CATEGORY_ORDER = [
+  'cat_cooking',
+  'cat_cleaning',
+  'cat_laundry',
+  'cat_gardening',
+  'cat_handyman',
+  'cat_moving',
+  'cat_home_services',
+  'cat_pet_care',
+  'cat_vehicle_care',
+  'cat_beauty'
+];
+
 export const useBookingStore = create((set, get) => ({
   draft: { ...INITIAL_DRAFT },
   categories: [],
@@ -40,7 +53,15 @@ export const useBookingStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await api.get('/categories');
-      set({ categories: data.categories, loading: false });
+      const sorted = (data.categories || []).sort((a, b) => {
+        const idxA = LAUNCH_CATEGORY_ORDER.indexOf(a.id);
+        const idxB = LAUNCH_CATEGORY_ORDER.indexOf(b.id);
+        const orderA = idxA !== -1 ? idxA : 99;
+        const orderB = idxB !== -1 ? idxB : 99;
+        if (orderA !== orderB) return orderA - orderB;
+        return 0;
+      });
+      set({ categories: sorted, loading: false });
     } catch (err) {
       set({ error: err.message, loading: false });
     }
