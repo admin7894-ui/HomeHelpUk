@@ -481,7 +481,11 @@ exports.getDeclined = async (req, res) => {
       `SELECT b.*, u.name as customer_name
        FROM bookings b
        LEFT JOIN users u ON b.customer_id = u.id
-       WHERE b.decline_records @> jsonb_build_array(jsonb_build_object('providerId', $1::text))`
+       WHERE EXISTS (
+         SELECT 1 FROM jsonb_array_elements(COALESCE(b.decline_records, '[]'::jsonb)) elem
+         WHERE elem->>'providerId' = $1
+       )`,
+      [pId]
     );
 
     const bookings = bRes.rows.map(row => {
