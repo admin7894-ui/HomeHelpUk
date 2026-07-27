@@ -49,7 +49,7 @@ export default function CategoryDetailScreen({ route, navigation }) {
   };
 
   const renderServiceCard = (srv) => {
-    const srvImage = getServiceImage(srv.id);
+    const srvImage = getServiceImage(srv.id, categoryId, srv.name);
     return (
       <Pressable
         key={srv.id}

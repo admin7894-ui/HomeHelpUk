@@ -184,8 +184,8 @@ export default function ServiceManagerScreen({ navigation }) {
           })}
         </View>
 
-        {/* Section 2: Collapsible Category Sections for Service Details & Pricing */}
-        <SectionTitle>Customize Service Details & Pricing</SectionTitle>
+        {/* Section 2: Services Offered (Read-Only Admin Pricing) */}
+        <SectionTitle>Select Services You Offer</SectionTitle>
         {selectedCats.map((catId) => {
           const cat = categories.find((c) => c.id === catId);
           if (!cat) return null;
@@ -245,9 +245,6 @@ export default function ServiceManagerScreen({ navigation }) {
                     sub.services?.map((s) => {
                       const cfg = servicesConfig[s.id] || { price: String(s.price), enabled: true };
                       const isEnabled = cfg.enabled;
-                      const providerSrvRecord = providerProfile?.services?.find((ps) =>
-                        typeof ps === 'string' ? ps === s.id : ps.serviceId === s.id
-                      );
 
                       return (
                         <Card
@@ -284,30 +281,25 @@ export default function ServiceManagerScreen({ navigation }) {
                                 {s.name}
                               </Text>
                               <Text style={[styles.serviceBaseText, { color: theme.textMuted }]}>
-                                Default Base: £{s.price}/{s.unit}
+                                Admin Base Price: £{s.price}/{s.unit || 'visit'}
                               </Text>
                             </View>
 
+                            {/* Read-only Base Price Badge */}
                             <View
                               style={[
-                                styles.inputContainer,
-                                { borderColor: theme.border, backgroundColor: isEnabled ? theme.surface : theme.background },
+                                styles.readOnlyPriceBadge,
+                                { borderColor: theme.border, backgroundColor: isEnabled ? theme.providerAccentSoft : theme.background },
                                 !isEnabled && { opacity: 0.5 }
                               ]}
                             >
-                              <Text style={{ color: isEnabled ? theme.text : theme.textMuted, fontWeight: '700', marginRight: 2 }}>£</Text>
-                              <AccessibleTextInput
-                                placeholder={String(s.price)}
-                                value={cfg.price}
-                                onChangeText={(text) => handlePriceChange(s.id, text)}
-                                keyboardType="numeric"
-                                editable={isEnabled}
-                                style={[styles.priceInput, { color: isEnabled ? theme.text : theme.textMuted }]}
-                              />
+                              <Text style={{ color: isEnabled ? theme.providerAccent : theme.textMuted, fontWeight: '800', fontSize: 13 }}>
+                                £{s.price}/{s.unit || 'visit'}
+                              </Text>
                             </View>
                           </View>
 
-                          {/* Footer Action Row (Greyed out when disabled) */}
+                          {/* Footer Action Row (Provider Settings) */}
                           <View
                             style={[
                               styles.serviceFooterRow,
@@ -316,9 +308,7 @@ export default function ServiceManagerScreen({ navigation }) {
                             ]}
                           >
                             <Text style={[styles.addonsCountText, { color: theme.textMuted }]}>
-                              {providerSrvRecord?.customAddOns?.length
-                                ? `${providerSrvRecord.customAddOns.length} Custom Add-ons`
-                                : 'Standard Details'}
+                              {isEnabled ? 'Service Active' : 'Service Off'}
                             </Text>
 
                             <Pressable
@@ -330,7 +320,7 @@ export default function ServiceManagerScreen({ navigation }) {
                               ]}
                             >
                               <Ionicons
-                                name="create-outline"
+                                name="options-outline"
                                 size={14}
                                 color={isEnabled ? theme.providerAccent : theme.textMuted}
                                 style={{ marginRight: 4 }}
@@ -341,7 +331,7 @@ export default function ServiceManagerScreen({ navigation }) {
                                   { color: isEnabled ? theme.providerAccent : theme.textMuted }
                                 ]}
                               >
-                                Edit Details & Add-ons
+                                Provider Service Settings
                               </Text>
                             </Pressable>
                           </View>
@@ -467,19 +457,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  readOnlyPriceBadge: {
     borderWidth: 1,
     borderRadius: radii.sm,
-    paddingHorizontal: spacing.xs,
-    width: 90,
-  },
-  priceInput: {
-    flex: 1,
-    height: 36,
-    fontWeight: '700',
-    fontSize: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justify: 'center',
   },
   serviceFooterRow: {
     marginTop: spacing.xs,

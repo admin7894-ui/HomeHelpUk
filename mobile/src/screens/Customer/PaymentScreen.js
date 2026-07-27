@@ -25,6 +25,16 @@ export default function PaymentScreen({ route, navigation }) {
       // Simulate gateway latency
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
+      let bookingNotes = draft.notes || '';
+      if (draft.familySizeLabel) {
+        bookingNotes = bookingNotes ? `${bookingNotes} | Family Size: ${draft.familySizeLabel}` : `Family Size: ${draft.familySizeLabel}`;
+      }
+      if (draft.movingDetails) {
+        const moveSummary = `Move: ${draft.movingDetails.moveSize?.title} | Pickup: ${draft.movingDetails.pickupAddress} | Dest: ${draft.movingDetails.destinationAddress}` +
+          (draft.movingDetails.vehicle ? ` | Vehicle: ${draft.movingDetails.vehicle.title}` : '');
+        bookingNotes = bookingNotes ? `${bookingNotes} | ${moveSummary}` : moveSummary;
+      }
+
       const booking = await createBooking({
         customerId: user.id,
         providerId: draft.providerId,
@@ -32,11 +42,11 @@ export default function PaymentScreen({ route, navigation }) {
         date: draft.date,
         time: draft.time,
         address: draft.address,
-        notes: draft.notes || '',
+        notes: bookingNotes,
         durationHours: Number(draft.durationHours),
         serviceQuantity: Number(draft.serviceQuantity || 1),
-        pricingBreakdown: billing,
-        pricingSnapshot: draft.pricingSnapshot || billing
+        pricingBreakdown: { ...billing, familySizeLabel: draft.familySizeLabel, movingDetails: draft.movingDetails, unitConfig: draft.unitConfig },
+        pricingSnapshot: { ...(draft.pricingSnapshot || billing), familySizeLabel: draft.familySizeLabel, movingDetails: draft.movingDetails, unitConfig: draft.unitConfig }
       });
 
       // Reset navigation stack to completely remove Booking Summary and Payment screens.
@@ -139,6 +149,17 @@ export default function PaymentScreen({ route, navigation }) {
         {/* Payment Details Card */}
         <Card style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.summaryTitle, { color: theme.textMuted }]}>PAYMENT BREAKDOWN</Text>
+          {Array.isArray(billing.selectedAddons) && billing.selectedAddons.length > 0 && (
+            billing.selectedAddons.map((add, idx) => (
+              <Row
+                key={add.serviceId || add.id || `addon_${idx}`}
+                label={`${add.name} (Add-on)`}
+                value={`+£${Number(add.price).toFixed(2)}`}
+                theme={theme}
+                fontScale={fontScale}
+              />
+            ))
+          )}
           <Row label="Subtotal" value={`£${billing.subtotal.toFixed(2)}`} theme={theme} fontScale={fontScale} />
           <Row label="Platform Service Fee" value={`£${billing.platformFee.toFixed(2)}`} theme={theme} fontScale={fontScale} />
           {billing.discount > 0 && (

@@ -17,6 +17,8 @@ export const PRICING_MODELS = {
 };
 
 export const CATEGORY_ALLOWED_MODELS = {
+  'Private Chef': ['fixed', 'per_hour', 'per_person'],
+  'Home Cooking': ['fixed', 'per_hour', 'per_person'],
   Cooking: ['fixed', 'per_hour', 'per_person'],
   Cleaning: ['fixed', 'per_hour', 'per_room', 'per_window', 'per_item', 'per_unit'],
   Plumbing: ['fixed', 'per_hour', 'per_item', 'quote'],
@@ -66,7 +68,11 @@ export const SERVICE_ALLOWED_MODELS = {
   service_baking: ['fixed']
 };
 
-export function getApplicablePricingModels(serviceId, categoryName) {
+export function getApplicablePricingModels(serviceId, categoryName, service = null) {
+  if (service?.pricingRules?.allowedPricingModels && Array.isArray(service.pricingRules.allowedPricingModels) && service.pricingRules.allowedPricingModels.length > 0) {
+    return service.pricingRules.allowedPricingModels.map(id => PRICING_MODELS[id]).filter(Boolean);
+  }
+
   if (serviceId && SERVICE_ALLOWED_MODELS[serviceId]) {
     return SERVICE_ALLOWED_MODELS[serviceId].map(id => PRICING_MODELS[id]).filter(Boolean);
   }
@@ -78,7 +84,7 @@ export function getApplicablePricingModels(serviceId, categoryName) {
   return [PRICING_MODELS.fixed, PRICING_MODELS.per_hour];
 }
 
-export function isPricingModelAllowed(serviceId, categoryName, pricingModelId) {
-  const allowed = getApplicablePricingModels(serviceId, categoryName);
+export function isPricingModelAllowed(serviceId, categoryName, pricingModelId, service = null) {
+  const allowed = getApplicablePricingModels(serviceId, categoryName, service);
   return allowed.some(m => m.id === pricingModelId);
 }

@@ -126,11 +126,11 @@ const cookingServicesData = [
   },
   {
     id: "service_indian_home_cooking",
-    name: "Indian Home Cooking",
+    name: "Indian Private Chef",
     price: 28,
     unit: "hr",
     duration: "2-4 hrs",
-    description: "Traditional Indian home cooking. Popular among South Asian families.",
+    description: "Traditional Indian private chef services. Popular among South Asian families.",
     ukTypicalPrice: "£20–£35",
     londonPrice: "£25–£40",
     mvpPrice: 28,
@@ -388,11 +388,11 @@ const cookingServicesData = [
 
 const cookingCategory = {
   id: "cat_cooking",
-  name: "Cooking",
+  name: "Private Chef",
   icon: "restaurant",
   price: 20,
   unit: "hr",
-  description: "Professional home cooking, meal prep, and event catering.",
+  description: "Professional private chef services, meal prep, and event catering.",
   subcategories: [
     {
       id: "sub_meal_prep",

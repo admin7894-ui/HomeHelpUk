@@ -7,6 +7,7 @@ import AppButton from '../../components/AppButton';
 import { useAppStore } from '../../store/appStore';
 import { useBookingStore } from '../../store/bookingStore';
 import { getTheme, scaledFont, spacing, radii } from '../../utils/theme';
+import { getSchedulingConfig } from '../../utils/serviceConfig';
 
 const { width } = Dimensions.get('window');
 
@@ -21,9 +22,10 @@ const getNextDays = () => {
     d.setDate(d.getDate() + i);
     days.push({
       dateStr: d.toISOString().split('T')[0], // YYYY-MM-DD
-      dayName: i === 0 ? 'Today' : weekdayNames[d.getDay()],
+      dayName: i === 0 ? 'TODAY' : weekdayNames[d.getDay()].toUpperCase(),
       dayNum: d.getDate(),
       month: monthNames[d.getMonth()],
+      fullDateLabel: `${i === 0 ? 'Today' : weekdayNames[d.getDay()]}, ${d.getDate()} ${monthNames[d.getMonth()]}`,
     });
   }
   return days;
@@ -45,30 +47,17 @@ export default function BookDateTimeScreen({ navigation }) {
 
   const daysList = getNextDays();
 
-  // State selection starting from today or previous selection
+  const schedulingConfig = getSchedulingConfig(
+    { id: draft.serviceId, name: draft.serviceName, unit: draft.serviceUnit, pricingRules: draft.pricingRules },
+    null
+  );
+
+  // State selection
   const [selectedDate, setSelectedDate] = useState(draft.date || daysList[0].dateStr);
   const [selectedTime, setSelectedTime] = useState(draft.time || TIME_SLOTS[1]);
-  const [duration, setDuration] = useState(draft.durationHours || 2);
-  const [serviceQuantity, setServiceQuantity] = useState(draft.serviceQuantity || 1);
+  const [duration, setDuration] = useState(draft.durationHours || schedulingConfig.defaultDurationHours || 2);
 
-  const getQuantityUnitLabel = (baseIncludesStr) => {
-    if (!baseIncludesStr) return 'Quantity';
-    const str = baseIncludesStr.toLowerCase();
-    if (str.match(/persons?|people/)) return 'People';
-    if (str.match(/guests?/)) return 'Guests';
-    if (str.match(/children/)) return 'Children';
-    if (str.match(/pets?/)) return 'Pets';
-    if (str.match(/dogs?/)) return 'Dogs';
-    if (str.match(/appliances?/)) return 'Appliances';
-    if (str.match(/vehicles?|cars?/)) return 'Vehicles';
-    if (str.match(/rooms?/)) return 'Rooms';
-    if (str.match(/tvs?/)) return 'TVs';
-    if (str.match(/windows?/)) return 'Windows';
-    return 'Quantity';
-  };
-
-  const quantityUnitLabel = getQuantityUnitLabel(draft.baseIncludes);
-  const showQuantitySelector = !!draft.baseIncludes || draft.additionalCharge > 0;
+  const selectedDayObj = daysList.find((d) => d.dateStr === selectedDate) || daysList[0];
 
   const handleNext = () => {
     setDraft({
@@ -80,14 +69,14 @@ export default function BookDateTimeScreen({ navigation }) {
   };
 
   return (
-    <ScreenContainer>
+    <ScreenContainer style={{ backgroundColor: theme.background }}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
           accessibilityLabel="Go back"
-          style={[styles.backBtn, { borderColor: theme.border }]}
+          style={[styles.backBtn, { borderColor: theme.border, backgroundColor: theme.surface }]}
         >
           <Ionicons name="arrow-back" size={20} color={theme.text} />
         </Pressable>
@@ -105,7 +94,7 @@ export default function BookDateTimeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Date Selection */}
+        {/* 1. Date Selection */}
         <Text style={[styles.sectionTitle, { color: theme.text, fontSize: scaledFont(16, fontScale) }]}>
           Select Date
         </Text>
@@ -122,16 +111,16 @@ export default function BookDateTimeScreen({ navigation }) {
                   style={[
                     styles.dateCard,
                     { backgroundColor: theme.surface, borderColor: theme.border },
-                    isSelected && { borderColor: theme.customerAccent, backgroundColor: theme.customerAccentSoft },
+                    isSelected && { borderColor: '#0A3925', backgroundColor: '#F0FDF4', borderWidth: 2 },
                   ]}
                 >
-                  <Text style={[styles.dayName, { color: theme.textMuted }, isSelected && { color: theme.customerAccent }]}>
+                  <Text style={[styles.dayName, { color: theme.textMuted }, isSelected && { color: '#0A3925', fontWeight: '800' }]}>
                     {day.dayName}
                   </Text>
-                  <Text style={[styles.dayNum, { color: theme.text }, isSelected && { color: theme.customerAccent, fontWeight: '800' }]}>
+                  <Text style={[styles.dayNum, { color: theme.text }, isSelected && { color: '#0A3925', fontWeight: '900' }]}>
                     {day.dayNum}
                   </Text>
-                  <Text style={[styles.monthName, { color: theme.textMuted }, isSelected && { color: theme.customerAccent }]}>
+                  <Text style={[styles.monthName, { color: theme.textMuted }, isSelected && { color: '#0A3925', fontWeight: '700' }]}>
                     {day.month}
                   </Text>
                 </Card>
@@ -140,9 +129,9 @@ export default function BookDateTimeScreen({ navigation }) {
           })}
         </ScrollView>
 
-        {/* Time Selection */}
-        <Text style={[styles.sectionTitle, { color: theme.text, fontSize: scaledFont(16, fontScale) }]}>
-          Select Preferred Start Time
+        {/* 2. Time Slot Selection */}
+        <Text style={[styles.sectionTitle, { color: theme.text, fontSize: scaledFont(16, fontScale), marginTop: 24 }]}>
+          Select a Time Slot
         </Text>
         <View style={styles.timeGrid}>
           {TIME_SLOTS.map((slot) => {
@@ -153,16 +142,16 @@ export default function BookDateTimeScreen({ navigation }) {
                   style={[
                     styles.timeCard,
                     { backgroundColor: theme.surface, borderColor: theme.border },
-                    isSelected && { borderColor: theme.customerAccent, backgroundColor: theme.customerAccentSoft },
+                    isSelected && { borderColor: '#0A3925', backgroundColor: '#F0FDF4', borderWidth: 2 },
                   ]}
                 >
                   <Ionicons
                     name="time-outline"
                     size={16}
-                    color={isSelected ? theme.customerAccent : theme.textMuted}
+                    color={isSelected ? '#0A3925' : theme.textMuted}
                     style={styles.timeIcon}
                   />
-                  <Text style={[styles.timeText, { color: theme.text }, isSelected && { color: theme.customerAccent, fontWeight: '700' }]}>
+                  <Text style={[styles.timeText, { color: theme.text }, isSelected && { color: '#0A3925', fontWeight: '900' }]}>
                     {slot}
                   </Text>
                 </Card>
@@ -171,41 +160,75 @@ export default function BookDateTimeScreen({ navigation }) {
           })}
         </View>
 
-        {/* Duration Selection (for hourly services) */}
-        {draft.serviceUnit === 'hr' && (
+        {/* 3. Duration Selector (Shown ONLY for Variable-Duration Services) */}
+        {schedulingConfig.showDurationSelector && (
           <View style={styles.durationSection}>
-            <Text style={[styles.sectionTitle, { color: theme.text, fontSize: scaledFont(16, fontScale) }]}>
-              Estimated Duration
+            <Text style={[styles.sectionTitle, { color: theme.text, fontSize: scaledFont(16, fontScale), marginTop: 24 }]}>
+              How long do you need the service?
             </Text>
-            <Card style={[styles.durationCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.durationDesc, { color: theme.textMuted }]}>
-                Choose how many hours you need. The professional will stay for this duration.
-              </Text>
-              <View style={styles.durationActions}>
-                <Pressable
-                  disabled={duration <= 1}
-                  onPress={() => setDuration(duration - 1)}
-                  style={[styles.circleBtn, { borderColor: theme.border }, duration <= 1 && { opacity: 0.4 }]}
-                >
-                  <Ionicons name="remove" size={20} color={theme.text} />
-                </Pressable>
-                <Text style={[styles.durationValue, { color: theme.text }]}>
-                  {duration} {duration === 1 ? 'Hour' : 'Hours'}
-                </Text>
-                <Pressable
-                  disabled={duration >= 8}
-                  onPress={() => setDuration(duration + 1)}
-                  style={[styles.circleBtn, { borderColor: theme.border }, duration >= 8 && { opacity: 0.4 }]}
-                >
-                  <Ionicons name="add" size={20} color={theme.text} />
-                </Pressable>
-              </View>
-            </Card>
+
+            <View style={styles.durationGrid}>
+              {(schedulingConfig.durationOptions || []).map((opt) => {
+                const isSelected = duration === opt.hours;
+                return (
+                  <Pressable
+                    key={opt.hours}
+                    onPress={() => setDuration(opt.hours)}
+                    style={[
+                      styles.durationChipCard,
+                      { backgroundColor: theme.surface, borderColor: theme.border },
+                      isSelected && { borderColor: '#0A3925', backgroundColor: '#F0FDF4', borderWidth: 2 }
+                    ]}
+                  >
+                    <Text style={[styles.durationChipText, isSelected && { color: '#0A3925', fontWeight: '900' }]}>
+                      {opt.label}
+                    </Text>
+                    {isSelected && <Ionicons name="checkmark-circle" size={16} color="#0A3925" style={{ marginLeft: 6 }} />}
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         )}
 
+        {/* 4. Compact Booking Summary Card */}
+        <Card style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>Your Booking</Text>
+
+          <View style={styles.summaryRow}>
+            <Ionicons name="construct-outline" size={18} color="#0A3925" style={styles.summaryIcon} />
+            <Text style={styles.summaryLabel}>Service:</Text>
+            <Text style={styles.summaryValue}>{draft.serviceName || 'Selected Service'}</Text>
+          </View>
+
+          <View style={styles.summaryRow}>
+            <Ionicons name="calendar-outline" size={18} color="#0A3925" style={styles.summaryIcon} />
+            <Text style={styles.summaryLabel}>Date:</Text>
+            <Text style={styles.summaryValue}>{selectedDayObj.fullDateLabel}</Text>
+          </View>
+
+          <View style={styles.summaryRow}>
+            <Ionicons name="time-outline" size={18} color="#0A3925" style={styles.summaryIcon} />
+            <Text style={styles.summaryLabel}>Time Slot:</Text>
+            <Text style={styles.summaryValue}>{selectedTime}</Text>
+          </View>
+
+          <View style={styles.summaryRow}>
+            <Ionicons name="hourglass-outline" size={18} color="#0A3925" style={styles.summaryIcon} />
+            <Text style={styles.summaryLabel}>Duration:</Text>
+            <Text style={styles.summaryValue}>
+              {duration} {duration === 1 ? 'Hour' : 'Hours'}
+            </Text>
+          </View>
+        </Card>
+
+        {/* Sticky Action CTA */}
         <View style={styles.actionRow}>
-          <AppButton label="Continue to Address" onPress={handleNext} />
+          <AppButton
+            label="Continue to Address"
+            disabled={!selectedDate || !selectedTime}
+            onPress={handleNext}
+          />
         </View>
       </ScrollView>
     </ScreenContainer>
@@ -240,24 +263,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: { paddingBottom: spacing.xl },
-  progressRow: { marginBottom: spacing.lg },
+  progressRow: { marginBottom: spacing.sm },
   stepLabel: { fontWeight: '800', fontSize: 13, marginBottom: spacing.xs },
   progressBarBg: { height: 6, borderRadius: 3, backgroundColor: '#E2E8F0', overflow: 'hidden' },
   progressBarFill: { height: '100%', borderRadius: 3 },
-  sectionTitle: { fontWeight: '800', marginVertical: spacing.md },
+  sectionTitle: { fontWeight: '800', marginBottom: spacing.sm },
   datesContainer: { gap: spacing.sm, paddingVertical: spacing.xs },
   dateCard: {
-    width: 76,
-    height: 100,
+    width: 78,
+    height: 104,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderRadius: radii.md,
-    marginRight: spacing.sm,
+    borderRadius: 16,
+    marginRight: spacing.xs,
   },
   dayName: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 2 },
-  dayNum: { fontSize: 20, fontWeight: '700', marginVertical: 2 },
-  monthName: { fontSize: 11, fontWeight: '600' },
+  dayNum: { fontSize: 22, fontWeight: '800', marginVertical: 2 },
+  monthName: { fontSize: 11, fontWeight: '700' },
   timeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'space-between' },
   timeGridItem: { width: (width - spacing.md * 3) / 2 },
   timeCard: {
@@ -266,22 +289,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderWidth: 1,
-    borderRadius: radii.md,
+    borderRadius: 14,
   },
   timeIcon: { marginRight: spacing.xs },
   timeText: { fontWeight: '600', fontSize: 14 },
-  durationSection: { marginTop: spacing.md },
-  durationCard: { padding: spacing.md, borderWidth: 1, borderRadius: radii.md },
-  durationDesc: { fontSize: 13, lineHeight: 18, marginBottom: spacing.md },
-  durationActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
-  circleBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1,
+  durationSection: { marginBottom: spacing.sm },
+  durationGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 6 },
+  durationChipCard: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    minWidth: (width - spacing.md * 3) / 2,
   },
-  durationValue: { fontSize: 18, fontWeight: '800', minWidth: 80, textAlign: 'center' },
-  actionRow: { marginTop: spacing.xl },
+  durationChipText: { fontSize: 14, fontWeight: '700', color: '#1E293B' },
+  summaryCard: {
+    marginTop: 24,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+  },
+  summaryTitle: { fontSize: 14, fontWeight: '900', color: '#0A3925', textTransform: 'uppercase', marginBottom: 12 },
+  summaryRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  summaryIcon: { marginRight: 8 },
+  summaryLabel: { fontSize: 13, color: '#64748B', width: 75, fontWeight: '600' },
+  summaryValue: { fontSize: 13, color: '#0F172A', fontWeight: '800', flex: 1 },
+  actionRow: { marginTop: spacing.md },
 });

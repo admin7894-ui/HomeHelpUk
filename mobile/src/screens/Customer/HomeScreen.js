@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Image, ScrollView, Dimensions, TextInput } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/ScreenContainer';
 import Card from '../../components/Card';
@@ -14,6 +15,74 @@ import { getServiceImage, resolveImageSource } from '../../utils/serviceImages';
 
 const { width } = Dimensions.get('window');
 
+const STATUS_LABELS = {
+  pending: 'Requested',
+  assigned: 'Confirmed',
+  accepted: 'Accepted',
+  confirmed: 'Confirmed',
+  en_route: 'En Route',
+  arrived: 'Arrived',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  declined: 'Declined',
+};
+
+const ACTIVE_STATUS_SET = new Set([
+  'pending',
+  'accepted',
+  'confirmed',
+  'assigned',
+  'en_route',
+  'arrived',
+  'in_progress',
+]);
+
+const INACTIVE_STATUS_SET = new Set([
+  'completed',
+  'cancelled',
+  'declined',
+  'rejected',
+  'refunded',
+]);
+
+const STATUS_PRIORITY = {
+  in_progress: 5,
+  arrived: 4,
+  en_route: 3,
+  assigned: 2,
+  confirmed: 2,
+  accepted: 2,
+  pending: 1,
+};
+
+const getActiveBooking = (bookingList) => {
+  if (!Array.isArray(bookingList) || bookingList.length === 0) return null;
+
+  const activeBookings = bookingList.filter((b) => {
+    if (!b || !b.status) return false;
+    const s = String(b.status).toLowerCase().trim();
+    return ACTIVE_STATUS_SET.has(s) && !INACTIVE_STATUS_SET.has(s);
+  });
+
+  if (activeBookings.length === 0) return null;
+
+  return [...activeBookings].sort((a, b) => {
+    const statusA = String(a.status).toLowerCase().trim();
+    const statusB = String(b.status).toLowerCase().trim();
+    const prioA = STATUS_PRIORITY[statusA] || 0;
+    const prioB = STATUS_PRIORITY[statusB] || 0;
+
+    if (prioA !== prioB) {
+      return prioB - prioA;
+    }
+
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return timeB - timeA;
+  })[0];
+};
+
 export default function HomeScreen({ navigation }) {
   const { highContrast, fontScale } = useAppStore();
   const { user } = useAuthStore();
@@ -27,10 +96,12 @@ export default function HomeScreen({ navigation }) {
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
   const [favorites, setFavorites] = useState({});
 
-  useEffect(() => {
-    fetchCategories();
-    if (user) fetchBookings({ customerId: user.id });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchCategories();
+      if (user) fetchBookings({ customerId: user.id });
+    }, [user])
+  );
 
   const activeFilterCount = countActiveFilters(appliedFilters);
 
@@ -105,7 +176,7 @@ export default function HomeScreen({ navigation }) {
     return true;
   });
 
-  const lastBooking = bookings[0];
+  const activeBooking = getActiveBooking(bookings);
 
   const banners = [
     {
@@ -357,7 +428,7 @@ export default function HomeScreen({ navigation }) {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.popularServicesScroll}>
                 {filteredServices.slice(0, 10).map((srv) => {
                   const isFav = Boolean(favorites[srv.id]);
-                  const srvImage = getServiceImage(srv.id, srv.name);
+                  const srvImage = getServiceImage(srv);
                   return (
                     <Pressable
                       key={srv.id}
@@ -403,10 +474,10 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           {/* 5. Track Active Booking */}
-          {lastBooking && (
+          {activeBooking && (
             <View style={styles.sectionContainer}>
               <Pressable
-                onPress={() => navigation.navigate('BookingStatus', { bookingId: lastBooking.id })}
+                onPress={() => navigation.navigate('BookingStatus', { bookingId: activeBooking.id })}
               >
                 <Card style={[styles.bookAgainCard, { backgroundColor: '#F0FDF4', borderColor: '#4ADE80' }]}>
                   <View style={styles.bookAgainRow}>
@@ -418,7 +489,7 @@ export default function HomeScreen({ navigation }) {
                         Track Active Booking
                       </Text>
                       <Text style={{ color: '#15803D', fontSize: scaledFont(13, fontScale), marginTop: 2 }}>
-                        View status of your booking ({lastBooking.status})
+                        View status of your booking ({STATUS_LABELS[activeBooking.status?.toLowerCase()] || activeBooking.status})
                       </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color="#15803D" />

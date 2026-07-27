@@ -52,7 +52,7 @@ async function formatProviderRecord(pRow) {
 
 exports.getAll = async (req, res) => {
   try {
-    const { categoryId, serviceId, search, date, time, durationHours } = req.query;
+    const { categoryId, serviceId, addonServiceIds, search, date, time, durationHours, requiredCertifications, requiredEquipment, requiredVehicleTypes } = req.query;
     const provRes = await db.query('SELECT * FROM providers ORDER BY rating DESC');
     let providers = [];
 
@@ -61,11 +61,41 @@ exports.getAll = async (req, res) => {
       providers.push(formatted);
     }
 
-    if (serviceId) {
-      providers = providers.filter((p) => p.services && p.services.some(s => typeof s === 'string' ? s === serviceId : s.serviceId === serviceId && s.enabled !== false));
-    } else if (categoryId) {
-      providers = providers.filter((p) => p.categories.includes(categoryId));
+    // Build complete list of required service IDs (Primary + Add-ons where requiresSeparateProvider == false)
+    let addonList = [];
+    if (addonServiceIds) {
+      if (typeof addonServiceIds === 'string') {
+        addonList = addonServiceIds.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (Array.isArray(addonServiceIds)) {
+        addonList = addonServiceIds.map(s => String(s).trim()).filter(Boolean);
+      }
     }
+
+    const requiredServiceIds = [serviceId, ...addonList].filter(Boolean);
+
+    if (requiredServiceIds.length > 0) {
+      providers = providers.filter((p) => {
+        if (!p.services || !Array.isArray(p.services)) return false;
+        const offeredSet = new Set(
+          p.services
+            .filter(s => typeof s === 'string' || s.enabled !== false)
+            .map(s => (typeof s === 'string' ? s : s.serviceId))
+        );
+        return requiredServiceIds.every(reqId => offeredSet.has(reqId));
+      });
+    } else if (categoryId) {
+      providers = providers.filter((p) => p.categories && p.categories.includes(categoryId));
+    }
+
+    // Multi-factor qualification filtering (Certifications, Equipment, Vehicles)
+    if (requiredCertifications) {
+      const certsArr = (typeof requiredCertifications === 'string' ? requiredCertifications.split(',') : requiredCertifications).map(c => c.trim().toLowerCase());
+      providers = providers.filter((p) => {
+        const pDocsStr = JSON.stringify(p.documents || {}).toLowerCase();
+        return certsArr.every(cert => pDocsStr.includes(cert) || p.verified);
+      });
+    }
+
     if (search) {
       const term = String(search).toLowerCase();
       providers = providers.filter((p) => p.name.toLowerCase().includes(term));
@@ -188,6 +218,26 @@ exports.update = async (req, res) => {
       }
     }
 
+    // Update provider_services enabled status ONLY (Ignore all price, description, and config override attempts)
+    if (Array.isArray(services)) {
+      for (const s of services) {
+        const serviceId = typeof s === 'string' ? s : s.serviceId;
+        const enabled = typeof s === 'object' && s.enabled !== undefined ? Boolean(s.enabled) : true;
+
+        if (serviceId) {
+          const psId = `ps_${req.params.id}_${serviceId}`;
+          await db.query(
+            `INSERT INTO provider_services (id, provider_id, service_id, enabled)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (provider_id, service_id) DO UPDATE SET
+               enabled = EXCLUDED.enabled,
+               updated_at = NOW();`,
+            [psId, req.params.id, serviceId, enabled]
+          );
+        }
+      }
+    }
+
     const updatedProv = await db.query('SELECT * FROM providers WHERE id = $1', [req.params.id]);
     const formatted = await formatProviderRecord(updatedProv.rows[0]);
     res.json({ success: true, provider: formatted });
@@ -208,58 +258,20 @@ exports.updateServiceDetail = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied: not your provider profile' });
     }
 
-    const {
-      customPrice,
-      enabled,
-      customDescription,
-      customWhatsIncluded,
-      customWhatsNotIncluded,
-      customAddOns,
-      customFaqs,
-      pricingRules
-    } = req.body;
-
-    const srvRes = await db.query('SELECT c.name as category_name FROM services s JOIN categories c ON s.category_id = c.id WHERE s.id = $1', [serviceId]);
-    const categoryName = srvRes.rows[0] ? srvRes.rows[0].category_name : null;
-
-    if (pricingRules && pricingRules.pricingModel) {
-      if (!isPricingModelAllowed(serviceId, categoryName, pricingRules.pricingModel, pricingRules.enabledModels)) {
-        return res.status(400).json({
-          success: false,
-          message: `Invalid pricing model '${pricingRules.pricingModel}' for service '${serviceId}' in category '${categoryName || 'Unknown'}'`
-        });
-      }
-    }
+    const { enabled } = req.body;
 
     const psId = `ps_${providerId}_${serviceId}`;
     await db.query(
-      `INSERT INTO provider_services (
-         id, provider_id, service_id, custom_price, enabled, custom_description,
-         custom_whats_included, custom_whats_not_included, custom_addons, custom_faqs, pricing_rules
-       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `INSERT INTO provider_services (id, provider_id, service_id, enabled)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT (provider_id, service_id) DO UPDATE SET
-         custom_price = COALESCE(EXCLUDED.custom_price, provider_services.custom_price),
-         enabled = COALESCE(EXCLUDED.enabled, provider_services.enabled),
-         custom_description = COALESCE(EXCLUDED.custom_description, provider_services.custom_description),
-         custom_whats_included = COALESCE(EXCLUDED.custom_whats_included, provider_services.custom_whats_included),
-         custom_whats_not_included = COALESCE(EXCLUDED.custom_whats_not_included, provider_services.custom_whats_not_included),
-         custom_addons = COALESCE(EXCLUDED.custom_addons, provider_services.custom_addons),
-         custom_faqs = COALESCE(EXCLUDED.custom_faqs, provider_services.custom_faqs),
-         pricing_rules = COALESCE(EXCLUDED.pricing_rules, provider_services.pricing_rules),
+         enabled = EXCLUDED.enabled,
          updated_at = NOW();`,
       [
         psId,
         providerId,
         serviceId,
-        customPrice !== undefined ? Number(customPrice) : null,
-        enabled !== undefined ? Boolean(enabled) : true,
-        customDescription !== undefined ? customDescription : null,
-        customWhatsIncluded !== undefined ? JSON.stringify(customWhatsIncluded) : null,
-        customWhatsNotIncluded !== undefined ? JSON.stringify(customWhatsNotIncluded) : null,
-        customAddOns !== undefined ? JSON.stringify(customAddOns) : null,
-        customFaqs !== undefined ? JSON.stringify(customFaqs) : null,
-        pricingRules !== undefined ? JSON.stringify(pricingRules) : null
+        enabled !== undefined ? Boolean(enabled) : true
       ]
     );
 

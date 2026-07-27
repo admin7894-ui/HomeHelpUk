@@ -1,7 +1,4 @@
-/**
- * Universal Pricing Engine for HomeHelpUK
- * Calculates service pricing based on shared base price, multi-component rules (duration & quantity), add-ons, and platform fee.
- */
+import { getServiceConfig } from './serviceConfig.js';
 
 export function calculateServicePrice({
   basePrice = 0,
@@ -9,23 +6,27 @@ export function calculateServicePrice({
   quantity = 1,
   durationHours = 1,
   serviceUnit = 'visit',
-  pricingRules = {}
+  pricingRules = {},
+  serviceConfig = null,
+  serviceId = ''
 }) {
+  const resolvedConfig = serviceConfig || (serviceId ? getServiceConfig(serviceId, { unit: serviceUnit, pricingRules }, {}) : null);
   const model = pricingRules.pricingModel || (serviceUnit === 'hr' ? 'per_hour' : 'fixed');
   const baseRate = Number(basePrice) || Number(pricingRules.basePrice) || 0;
   
   // 1. Time Component (Extra Hours beyond Included Hours)
-  const isHourlyEnabled = Boolean(
-    pricingRules.enablePerHour || 
-    (Array.isArray(pricingRules.enabledModels) && pricingRules.enabledModels.includes('per_hour')) ||
-    model === 'per_hour' || 
-    model === 'multi' ||
-    serviceUnit === 'hr'
+  // ONLY charge extra hours if duration selector is explicitly customer-selectable for this service (variable duration)
+  const isCustomerSelectableDuration = Boolean(
+    resolvedConfig?.durationConfig?.showDurationSelectorToCustomer ||
+    pricingRules?.showDurationSelectorToCustomer ||
+    pricingRules?.isVariableDuration ||
+    model === 'per_hour_variable'
   );
-  
-  const includedHours = Number(pricingRules.includedHours) || 1;
+
+  const isHourlyEnabled = isCustomerSelectableDuration;
+  const includedHours = Number(pricingRules.includedHours) || (isHourlyEnabled ? 1 : Number(durationHours) || 1);
   const extraHourPrice = Number(pricingRules.additionalHourPrice) || (isHourlyEnabled ? (Number(pricingRules.additionalUnitPrice) || baseRate) : 0);
-  const hours = isHourlyEnabled ? Math.max(1, Number(durationHours) || 1) : 1;
+  const hours = Math.max(1, Number(durationHours) || 1);
   
   let extraHours = 0;
   let extraHoursCost = 0;

@@ -330,12 +330,26 @@ export default function BookingStatusScreen({ route, navigation }) {
               <Text style={{ color: theme.text }}>£{booking.pricingBreakdown.travelCharge?.toFixed(2)}</Text>
             </View>
           )}
-          {booking.pricingBreakdown?.addonsSubtotal > 0 && (
+          {(Array.isArray(booking.pricingBreakdown?.selectedAddons) && booking.pricingBreakdown.selectedAddons.length > 0) ? (
+            booking.pricingBreakdown.selectedAddons.map((add, idx) => (
+              <View key={add.serviceId || add.id || `status_addon_${idx}`} style={styles.billingRow}>
+                <Text style={{ color: theme.textMuted }}>{add.name} (Add-on)</Text>
+                <Text style={{ color: theme.text }}>+£{Number(add.price).toFixed(2)}</Text>
+              </View>
+            ))
+          ) : (Array.isArray(booking.addOns) && booking.addOns.length > 0) ? (
+            booking.addOns.map((add, idx) => (
+              <View key={add.serviceId || add.id || `status_addon_${idx}`} style={styles.billingRow}>
+                <Text style={{ color: theme.textMuted }}>{add.name} (Add-on)</Text>
+                <Text style={{ color: theme.text }}>+£{Number(add.price).toFixed(2)}</Text>
+              </View>
+            ))
+          ) : booking.pricingBreakdown?.addonsSubtotal > 0 ? (
             <View style={styles.billingRow}>
               <Text style={{ color: theme.textMuted }}>Add-ons Cost</Text>
               <Text style={{ color: theme.text }}>£{booking.pricingBreakdown.addonsSubtotal?.toFixed(2)}</Text>
             </View>
-          )}
+          ) : null}
 
           <View style={styles.billingRow}>
             <Text style={{ color: theme.textMuted }}>Platform Trust Fee</Text>

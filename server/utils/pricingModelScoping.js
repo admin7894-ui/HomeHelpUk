@@ -17,6 +17,8 @@ const PRICING_MODELS = {
 };
 
 const CATEGORY_ALLOWED_MODELS = {
+  'Private Chef': ['fixed', 'per_hour', 'per_person'],
+  'Home Cooking': ['fixed', 'per_hour', 'per_person'],
   Cooking: ['fixed', 'per_hour', 'per_person'],
   Cleaning: ['fixed', 'per_hour', 'per_room', 'per_window', 'per_item', 'per_unit'],
   Plumbing: ['fixed', 'per_hour', 'per_item', 'quote'],

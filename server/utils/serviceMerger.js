@@ -1,5 +1,8 @@
 /**
- * Utility to merge platform canonical service defaults with provider-specific overrides.
+ * Utility to merge platform canonical service defaults with provider-specific records.
+ * STRICT RULE: Provider records are allowed ONLY to control `enabled` status.
+ * All global pricing, descriptions, inclusions, exclusions, add-ons, FAQs, and eligibility
+ * remain 100% Admin-controlled.
  */
 
 function findCanonicalService(categories, serviceId) {
@@ -21,7 +24,6 @@ function mergeServiceDetails(canonicalService, providerServiceRecord = null) {
 
   const srv = { ...canonicalService };
 
-  // Normalize property names for customAddOns
   const platformAddOns = srv.customAddOns || srv.addOns || srv.addons || [];
   const platformWhatsIncluded = Array.isArray(srv.whatsIncluded) ? srv.whatsIncluded : (srv.baseIncludes ? [srv.baseIncludes] : []);
   const platformWhatsNotIncluded = Array.isArray(srv.whatsNotIncluded) ? srv.whatsNotIncluded : [];
@@ -36,52 +38,20 @@ function mergeServiceDetails(canonicalService, providerServiceRecord = null) {
     maxQuantity: srv.maxQuantity || 0
   };
 
-  if (!providerServiceRecord) {
-    return {
-      ...srv,
-      whatsIncluded: platformWhatsIncluded,
-      whatsNotIncluded: platformWhatsNotIncluded,
-      customAddOns: platformAddOns,
-      faqs: platformFaqs,
-      pricingRules: platformPricingRules,
-      effectivePrice: srv.price || 0
-    };
-  }
-
-  // Apply Provider Overrides if enabled
-  const customPrice = Number(providerServiceRecord.customPrice) || Number(providerServiceRecord.price) || srv.price;
-  
-  const mergedWhatsIncluded = Array.isArray(providerServiceRecord.customWhatsIncluded) && providerServiceRecord.customWhatsIncluded.length > 0
-    ? providerServiceRecord.customWhatsIncluded
-    : platformWhatsIncluded;
-
-  const mergedWhatsNotIncluded = Array.isArray(providerServiceRecord.customWhatsNotIncluded) && providerServiceRecord.customWhatsNotIncluded.length > 0
-    ? providerServiceRecord.customWhatsNotIncluded
-    : platformWhatsNotIncluded;
-
-  const mergedAddOns = Array.isArray(providerServiceRecord.customAddOns) && providerServiceRecord.customAddOns.length > 0
-    ? providerServiceRecord.customAddOns
-    : platformAddOns;
-
-  const providerFaqs = Array.isArray(providerServiceRecord.customFaqs) ? providerServiceRecord.customFaqs : [];
-  const mergedFaqs = [...platformFaqs, ...providerFaqs];
-
-  const mergedPricingRules = {
-    ...platformPricingRules,
-    ...(providerServiceRecord.pricingRules || {}),
-    basePrice: customPrice
-  };
+  const isEnabled = providerServiceRecord ? providerServiceRecord.enabled !== false : true;
 
   return {
     ...srv,
-    description: providerServiceRecord.customDescription || srv.description,
-    whatsIncluded: mergedWhatsIncluded,
-    whatsNotIncluded: mergedWhatsNotIncluded,
-    customAddOns: mergedAddOns,
-    faqs: mergedFaqs,
-    pricingRules: mergedPricingRules,
-    effectivePrice: customPrice,
-    providerOverrideApplied: true
+    enabled: isEnabled,
+    whatsIncluded: platformWhatsIncluded,
+    whatsNotIncluded: platformWhatsNotIncluded,
+    customAddOns: platformAddOns,
+    addons: platformAddOns,
+    availableAddOns: platformAddOns,
+    faqs: platformFaqs,
+    pricingRules: platformPricingRules,
+    effectivePrice: Number(srv.price) || 0,
+    providerOverrideApplied: false
   };
 }
 

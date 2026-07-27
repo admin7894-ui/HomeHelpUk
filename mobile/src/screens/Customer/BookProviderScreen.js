@@ -97,6 +97,20 @@ export default function BookProviderScreen({ navigation }) {
     handleExplicitCheckAvailability(dateStr, timeSlot);
   };
 
+  const handleRemoveAddons = async () => {
+    setDraft({ addOns: [] });
+    const targetDate = draft.date || selectedDate;
+    const targetTime = draft.time || selectedTime;
+    setCheckingAvailability(true);
+    try {
+      await fetchProvidersByService(draft.serviceId, targetDate, targetTime, draft.durationHours);
+    } catch (err) {
+      console.log('Error removing add-ons:', err);
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
+
   const handleSelectProvider = (provider, providerEst) => {
     setDraft({
       providerId: provider.id,
@@ -194,21 +208,45 @@ export default function BookProviderScreen({ navigation }) {
             <Text style={styles.retryBtnText}>Tap to Retry</Text>
           </Pressable>
         </View>
-      ) : (providers.length === 0 || showDateSelection) ? (
+      ) : (providers.length === 0 && !showDateSelection) ? (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.recoveryScrollContent}>
+          <Card style={styles.recoveryCard}>
+            <View style={styles.recoveryHeaderRow}>
+              <Ionicons name="alert-circle" size={24} color="#D97706" style={{ marginRight: 8 }} />
+              <Text style={styles.recoveryTitleText}>No Professionals Available</Text>
+            </View>
+
+            <Text style={styles.recoveryDescText}>
+              No provider is currently available who offers all of your selected services together.
+            </Text>
+
+            <View style={{ gap: 12, marginTop: 16 }}>
+              {draft.addOns && draft.addOns.length > 0 && (
+                <AppButton
+                  label="Remove Add-on Services"
+                  onPress={handleRemoveAddons}
+                  variant="outline"
+                />
+              )}
+              <AppButton
+                label="Change Date & Time"
+                onPress={() => setShowDateSelection(true)}
+                variant="primary"
+              />
+            </View>
+          </Card>
+        </ScrollView>
+      ) : showDateSelection ? (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.recoveryScrollContent}>
           {/* Functional Availability Recovery Card */}
           <Card style={styles.recoveryCard}>
             <View style={styles.recoveryHeaderRow}>
               <Ionicons name="calendar-outline" size={24} color="#D97706" style={{ marginRight: 8 }} />
-              <Text style={styles.recoveryTitleText}>
-                {providers.length === 0 ? 'No Professionals Available' : 'Change Date & Time'}
-              </Text>
+              <Text style={styles.recoveryTitleText}>Change Date & Time</Text>
             </View>
 
             <Text style={styles.recoveryDescText}>
-              {providers.length === 0
-                ? `No professionals are currently available for ${formatDisplayDate(lastSearchedSlot.dateStr)} at ${lastSearchedSlot.timeSlot}.`
-                : `Currently showing results for ${formatDisplayDate(selectedDate)} at ${selectedTime}.`}
+              Currently showing results for {formatDisplayDate(selectedDate)} at {selectedTime}.
             </Text>
             <Text style={styles.recoveryInstructionText}>
               Select a date and time below, then tap <Text style={{ fontWeight: '800', color: '#0A3925' }}>Check Availability</Text>:
@@ -275,29 +313,15 @@ export default function BookProviderScreen({ navigation }) {
               variant="primary"
               style={styles.checkAvailabilityBtn}
             />
-
-            {/* Fallback Action Buttons */}
-            <View style={styles.fallbackActionsRow}>
-              <Pressable
-                onPress={() => Alert.alert('Notification Set', `We will notify you as soon as a professional becomes available for ${formatDisplayDate(selectedDate)} at ${selectedTime}!`)}
-                style={styles.notifyBtn}
-              >
-                <Ionicons name="notifications-outline" size={16} color="#0A3925" style={{ marginRight: 6 }} />
-                <Text style={styles.notifyBtnText}>Notify Me When Available</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
-                style={styles.anotherServiceBtn}
-              >
-                <Text style={styles.anotherServiceBtnText}>Choose Another Service</Text>
-              </Pressable>
-            </View>
           </Card>
         </ScrollView>
       ) : (
         <FlatList
-          data={providers}
+          data={[...providers].sort((a, b) => {
+            if ((b.rating || 0) !== (a.rating || 0)) return (b.rating || 0) - (a.rating || 0);
+            if ((b.completedJobs || 0) !== (a.completedJobs || 0)) return (b.completedJobs || 0) - (a.completedJobs || 0);
+            return (a.distanceKm || 1.5) - (b.distanceKm || 1.5);
+          })}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
@@ -314,6 +338,8 @@ export default function BookProviderScreen({ navigation }) {
               serviceUnit: draft.serviceUnit || 'hr',
               pricingRules: providerPricingRules
             });
+
+            const sameProviderAddons = (draft.addOns || []).filter(a => !a.requiresSeparateProvider);
 
             return (
               <Pressable onPress={() => handleSelectProvider(item, providerEst)}>
@@ -344,6 +370,23 @@ export default function BookProviderScreen({ navigation }) {
                       <Text numberOfLines={1} style={[styles.bioText, { color: theme.textMuted, fontSize: scaledFont(12, fontScale) }]}>
                         {item.bio || 'Experienced verified service professional.'}
                       </Text>
+                    </View>
+                  </View>
+
+                  {/* Services Covered Section */}
+                  <View style={styles.servicesCoveredContainer}>
+                    <Text style={[styles.servicesCoveredHeader, { color: theme.textMuted }]}>Services Covered:</Text>
+                    <View style={styles.servicesCoveredRow}>
+                      <View style={styles.serviceTag}>
+                        <Ionicons name="checkmark-circle" size={13} color="#16A34A" style={{ marginRight: 4 }} />
+                        <Text style={styles.serviceTagText}>✓ {draft.serviceName || 'Primary Service'}</Text>
+                      </View>
+                      {sameProviderAddons.map((add, idx) => (
+                        <View key={add.serviceId || add.id || `sc_${idx}`} style={styles.serviceTag}>
+                          <Ionicons name="checkmark-circle" size={13} color="#16A34A" style={{ marginRight: 4 }} />
+                          <Text style={styles.serviceTagText}>✓ {add.name}</Text>
+                        </View>
+                      ))}
                     </View>
                   </View>
 
@@ -686,6 +729,39 @@ const styles = StyleSheet.create({
   },
   bioText: {
     lineHeight: 16,
+  },
+  servicesCoveredContainer: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  servicesCoveredHeader: {
+    fontSize: 10,
+    fontWeight: '800',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  servicesCoveredRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  serviceTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radii.sm,
+  },
+  serviceTagText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#14532D',
   },
   divider: {
     height: 1,

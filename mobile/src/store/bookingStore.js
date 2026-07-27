@@ -21,6 +21,9 @@ export const INITIAL_DRAFT = {
   selectedProvider: null,
   pricingRules: null,
   pricingSnapshot: null,
+  familySize: null,
+  familySizeLabel: '',
+  movingDetails: null,
   couponCode: '',
   couponDiscount: 0,
 };
@@ -81,6 +84,18 @@ export const useBookingStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const params = { serviceId };
+
+      // Filter add-ons: only include add-ons where requiresSeparateProvider == false
+      const draftAddons = get().draft.addOns || [];
+      const sameProviderAddons = draftAddons
+        .filter(a => !a.requiresSeparateProvider)
+        .map(a => a.serviceId || a.id)
+        .filter(Boolean);
+
+      if (sameProviderAddons.length > 0) {
+        params.addonServiceIds = sameProviderAddons.join(',');
+      }
+
       if (date && time) {
         params.date = date;
         params.time = time;

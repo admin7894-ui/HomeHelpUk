@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, ScrollView, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image, ScrollView, Dimensions, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Card from '../../components/Card';
@@ -10,6 +10,16 @@ import { useBookingStore } from '../../store/bookingStore';
 import { getTheme, scaledFont, spacing, radii } from '../../utils/theme';
 import { getServiceImage, getServiceGallery, getServicePreviewGif, resolveImageSource } from '../../utils/serviceImages';
 import { calculateServicePrice } from '../../utils/pricingEngine';
+import {
+  MOVE_SIZE_OPTIONS,
+  PROPERTY_SIZE_OPTIONS,
+  MOVING_ITEMS_LIST,
+  MOVING_ASSISTANCE_OPTIONS,
+  VEHICLE_OPTIONS,
+  getServiceType,
+  resolveUnitConfig,
+  getServiceConfig
+} from '../../utils/serviceConfig';
 
 const { width } = Dimensions.get('window');
 
@@ -25,14 +35,8 @@ export default function ServiceDetailScreen({ route, navigation }) {
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [expandedFaqIndex, setExpandedFaqIndex] = useState(null);
 
-  useEffect(() => {
-    if (serviceId) {
-      fetchProvidersByService(serviceId);
-    }
-  }, [serviceId]);
-
-  const findServiceData = () => {
-    if (!serviceId) return { service: null, mainCategory: null };
+  // Fetch Service object
+  const findService = () => {
     for (const cat of categories) {
       if (cat.subcategories) {
         for (const sub of cat.subcategories) {
@@ -44,7 +48,13 @@ export default function ServiceDetailScreen({ route, navigation }) {
     return { service: null, mainCategory: null };
   };
 
-  const { service, mainCategory } = findServiceData();
+  const { service, mainCategory } = findService();
+
+  useEffect(() => {
+    if (service) {
+      fetchProvidersByService(service.id);
+    }
+  }, [serviceId]);
 
   const eligibleProviders = (providers || []).filter((p) => {
     if (!p.services) return false;
@@ -79,38 +89,109 @@ export default function ServiceDetailScreen({ route, navigation }) {
     maximumQuantity: service?.maxQuantity || 10
   };
 
-  const getQuantityUnitLabel = (baseIncludesStr, pRules) => {
-    const str = ((baseIncludesStr || '') + ' ' + (pRules?.includedUnit || '') + ' ' + (pRules?.additionalUnit || '')).toLowerCase();
-    if (str.match(/person|people|guest|diner|member/)) return 'Persons';
-    if (str.match(/room|bedroom|bathroom/)) return 'Rooms';
-    if (str.match(/pet|dog|cat/)) return 'Pets';
-    if (str.match(/vehicle|car|van/)) return 'Vehicles';
-    if (str.match(/appliance|socket|light|outlet|fixture|window|radiator|portion|meal/)) return 'Units';
-    if (pRules?.pricingModel === 'per_person') return 'Persons';
-    if (pRules?.pricingModel === 'per_unit') return 'Units';
-    return 'Units';
+  const serviceConfig = getServiceConfig(serviceId, service, mainCategory);
+
+  if (serviceConfig.isActive === false) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+        <Ionicons name="alert-circle-outline" size={64} color="#EF4444" style={{ marginBottom: 16 }} />
+        <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A', textAlign: 'center', marginBottom: 8 }}>
+          Service Unavailable
+        </Text>
+        <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 24 }}>
+          This service is no longer available on HomeHelpUK.
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: '#0A3925', paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12 }}
+          onPress={() => navigation.navigate('CategoriesScreen')}
+        >
+          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>Browse Available Services</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const unitConfig = serviceConfig.quantityConfig;
+  const isQuantityBasedService = unitConfig.enabled;
+
+  const includedQty = unitConfig.includedQty || 1;
+  const minQty = unitConfig.minQty || 1;
+  const maxQty = unitConfig.maxQty || 20;
+  const addPrice = unitConfig.extraUnitPrice || 0;
+
+  const serviceType = getServiceType(service, mainCategory);
+  const isMovingService = serviceType === 'MOVING';
+  const isCookingService = serviceType === 'COOKING';
+
+  // Moving Help State
+  const [selectedMoveSizeId, setSelectedMoveSizeId] = useState('small_move');
+  const [pickupAddress, setPickupAddress] = useState(draft?.address || '128 West 34th Street, London, UK');
+  const [destinationAddress, setDestinationAddress] = useState('45 Oxford Street, London, UK');
+  const [selectedPropertySizeId, setSelectedPropertySizeId] = useState('2bed');
+  const [itemQuantities, setItemQuantities] = useState({ sofa: 1, boxes: 5, bed: 1 });
+  const [selectedAssistance, setSelectedAssistance] = useState(['load_unload']);
+  const [selectedVehicleId, setSelectedVehicleId] = useState('large_van');
+
+  const updateItemQty = (itemId, delta) => {
+    setItemQuantities(prev => {
+      const current = prev[itemId] || 0;
+      const updated = Math.max(0, current + delta);
+      if (updated === 0) {
+        const { [itemId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [itemId]: updated };
+    });
   };
 
-  const quantityUnitLabel = getQuantityUnitLabel(service?.baseIncludes || '', pricingRules);
+  const toggleAssistance = (assistId) => {
+    setSelectedAssistance(prev =>
+      prev.includes(assistId) ? prev.filter(id => id !== assistId) : [...prev, assistId]
+    );
+  };
 
-  const isQuantityBasedService = Boolean(
-    service && (
-      pricingRules.pricingModel === 'per_person' ||
-      pricingRules.pricingModel === 'per_unit' ||
-      pricingRules.enabledModels?.includes('per_person') ||
-      pricingRules.enabledModels?.includes('per_unit') ||
-      (service.additionalCharge > 0) ||
-      (pricingRules.additionalUnitPrice > 0) ||
-      (service.baseIncludes && service.baseIncludes.match(/person|people|room|pet|vehicle|unit|socket|light|portion|meal/i))
-    )
-  );
+  // Compute Moving Costs
+  const currentMoveSize = MOVE_SIZE_OPTIONS.find(m => m.id === selectedMoveSizeId) || MOVE_SIZE_OPTIONS[0];
+  const currentPropertySize = PROPERTY_SIZE_OPTIONS.find(p => p.id === selectedPropertySizeId) || PROPERTY_SIZE_OPTIONS[0];
+  const currentVehicle = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
 
-  const includedQty = pricingRules.includedQuantity || 1;
-  const minQty = pricingRules.minimumQuantity || 1;
-  const maxQty = service?.maxQuantity || pricingRules.maximumQuantity || 10;
-  const addPrice = pricingRules.additionalUnitPrice ?? service?.additionalCharge ?? 0;
+  const moveSizeCost = currentMoveSize.priceAdjustment || 0;
+  const propertySizeCost = (isMovingService && currentMoveSize.requiresPropertySize) ? (currentPropertySize.priceAdjustment || 0) : 0;
+  const vehicleCost = isMovingService ? (currentVehicle.price || 0) : 0;
 
+  const itemsCost = isMovingService ? Object.entries(itemQuantities).reduce((sum, [itemId, qty]) => {
+    const itemDef = MOVING_ITEMS_LIST.find(i => i.id === itemId);
+    return sum + (itemDef ? itemDef.unitPrice * qty : 0);
+  }, 0) : 0;
+
+  const assistanceCost = isMovingService ? selectedAssistance.reduce((sum, assistId) => {
+    const assistDef = MOVING_ASSISTANCE_OPTIONS.find(a => a.id === assistId);
+    return sum + (assistDef ? assistDef.price : 0);
+  }, 0) : 0;
+
+  const movingAdditionsTotal = moveSizeCost + propertySizeCost + vehicleCost + itemsCost + assistanceCost;
+
+  const FAMILY_SIZE_OPTIONS = [
+    { id: 'small', title: 'Small Family', peopleRange: '1–3 people', description: 'Basic meal prep', quantity: 3 },
+    { id: 'medium', title: 'Medium Family', peopleRange: '4–6 people', description: 'Standard meal prep', quantity: 5 },
+    { id: 'large', title: 'Large Family', peopleRange: '7+ people', description: 'Generous meal prep', quantity: 8 },
+  ];
+
+  const [selectedFamilySizeId, setSelectedFamilySizeId] = useState('small');
   const [quantity, setQuantity] = useState(() => (includedQty > 0 ? includedQty : minQty));
+
+  const familyOptionsWithPricing = FAMILY_SIZE_OPTIONS.map((option) => {
+    const calc = calculateServicePrice({
+      basePrice: service?.effectivePrice || service?.price || 0,
+      selectedAddons: selectedAddons,
+      quantity: option.quantity,
+      pricingRules
+    });
+    return { ...option, subtotal: calc.subtotal, extraUnitsCost: calc.extraUnitsCost, extraUnits: calc.extraUnits };
+  });
+
+  const selectedFamilyOption = familyOptionsWithPricing.find((o) => o.id === selectedFamilySizeId) || familyOptionsWithPricing[0];
+  const activeQuantity = isCookingService ? selectedFamilyOption.quantity : quantity;
 
   useEffect(() => {
     if (service && mainCategory) {
@@ -139,31 +220,80 @@ export default function ServiceDetailScreen({ route, navigation }) {
     );
   }
 
+  const whatsIncludedList = Array.isArray(service.includedItems) && service.includedItems.length > 0
+    ? service.includedItems
+    : (Array.isArray(service.whatsIncluded) && service.whatsIncluded.length > 0 ? service.whatsIncluded : (service.baseIncludes ? [service.baseIncludes] : ['Professional execution of requested service']));
+
+  const whatsNotIncludedList = Array.isArray(service.notIncludedItems) && service.notIncludedItems.length > 0
+    ? service.notIncludedItems
+    : (Array.isArray(service.whatsNotIncluded) ? service.whatsNotIncluded : []);
+
+  const faqsList = Array.isArray(service.faqs) ? service.faqs : [];
+
+  const getReferencedService = (targetId) => {
+    if (!targetId) return null;
+    for (const cat of categories) {
+      if (cat.subcategories) {
+        for (const sub of cat.subcategories) {
+          const match = (sub.services || []).find((s) => s.id === targetId);
+          if (match) return { ...match, categoryName: cat.name };
+        }
+      }
+    }
+    return null;
+  };
+
+  const rawAddons = service.availableAddOns || service.addons || service.customAddOns || [];
+  const resolvedAddonsList = rawAddons.map((item, index) => {
+    const targetServiceId = item.serviceId || item.id;
+    const refSrv = getReferencedService(targetServiceId);
+    const name = item.name || refSrv?.name || `Add-on ${index + 1}`;
+    const description = item.description || refSrv?.description || (refSrv?.categoryName ? `Service from ${refSrv.categoryName}` : 'Optional service add-on');
+    const price = Number(item.price ?? refSrv?.price ?? 10);
+    const requiresSeparateProvider = item.requiresSeparateProvider ?? (refSrv && refSrv.categoryId !== service.categoryId);
+    return { id: targetServiceId || `addon_${index}`, serviceId: targetServiceId, name, description, price, requiresSeparateProvider: Boolean(requiresSeparateProvider), providerId: null };
+  });
+
   const handleAddonToggle = (addon) => {
-    if (selectedAddons.some((a) => a.id === addon.id)) {
-      setSelectedAddons(selectedAddons.filter((a) => a.id !== addon.id));
+    if (selectedAddons.some((a) => a.id === addon.id || a.serviceId === addon.serviceId)) {
+      setSelectedAddons(selectedAddons.filter((a) => a.id !== addon.id && a.serviceId !== addon.serviceId));
     } else {
       setSelectedAddons([...selectedAddons, addon]);
     }
   };
 
-  const customAddOns = service.customAddOns || service.addOns || service.addons || [];
-  const whatsIncludedList = Array.isArray(service.whatsIncluded) && service.whatsIncluded.length > 0
-    ? service.whatsIncluded
-    : (service.baseIncludes ? [service.baseIncludes] : ['Professional execution of requested service']);
-  const whatsNotIncludedList = Array.isArray(service.whatsNotIncluded) ? service.whatsNotIncluded : [];
-  const faqsList = Array.isArray(service.faqs) ? service.faqs : [];
-
+  // Generic Stepper Extra Calculation:
+  // totalPrice = basePrice + Math.max(0, quantity - unitConfig.includedQty) * unitConfig.extraUnitPrice
+  const extraUnitsCount = Math.max(0, activeQuantity - includedQty);
+  const extraUnitsPriceCost = extraUnitsCount * addPrice;
   const pricingBreakdown = calculateServicePrice({
-    basePrice: service.effectivePrice || service.price || 0,
+    basePrice: (service?.effectivePrice || service?.price || 0) + (isMovingService ? movingAdditionsTotal : 0),
     selectedAddons: selectedAddons,
-    quantity: quantity,
-    pricingRules
+    quantity: isMovingService ? 1 : activeQuantity,
+    pricingRules,
+    serviceConfig,
+    serviceId: service.id
   });
 
   const { subtotal } = pricingBreakdown;
 
   const handleBookNow = () => {
+    const formattedAddons = selectedAddons.map((a) => ({
+      serviceId: a.serviceId || a.id,
+      name: a.name,
+      price: Number(a.price) || 0,
+      requiresSeparateProvider: Boolean(a.requiresSeparateProvider),
+      providerId: null
+    }));
+
+    const familySizeData = isCookingService
+      ? { id: selectedFamilyOption.id, title: selectedFamilyOption.title, peopleRange: selectedFamilyOption.peopleRange, label: `${selectedFamilyOption.title} (${selectedFamilyOption.peopleRange})` }
+      : null;
+
+    const movingDetailsData = isMovingService
+      ? { moveSize: currentMoveSize, pickupAddress, destinationAddress, propertySize: currentMoveSize.requiresPropertySize ? currentPropertySize : null, itemsToMove: itemQuantities, assistance: selectedAssistance.map(id => MOVING_ASSISTANCE_OPTIONS.find(a => a.id === id)), vehicle: currentVehicle }
+      : null;
+
     setDraft({
       serviceId: service.id,
       serviceName: service.name,
@@ -171,17 +301,21 @@ export default function ServiceDetailScreen({ route, navigation }) {
       serviceUnit: service.unit || 'hr',
       baseIncludes: service.baseIncludes || '',
       additionalCharge: service.additionalCharge || 0,
+      unitConfig,
       pricingRules,
-      addOns: selectedAddons,
-      serviceQuantity: quantity,
+      addOns: formattedAddons,
+      serviceQuantity: isMovingService ? 1 : activeQuantity,
+      familySize: familySizeData,
+      familySizeLabel: familySizeData ? familySizeData.label : '',
+      movingDetails: movingDetailsData,
       totalPrice: subtotal,
       estimatedPricing: pricingBreakdown
     });
     navigation.navigate('BookDateTime');
   };
 
-  const exactServiceImage = getServiceImage(service.id);
-  const galleryThumbnails = getServiceGallery(service.id);
+  const exactServiceImage = getServiceImage(service);
+  const galleryThumbnails = getServiceGallery(service);
   const previewGif = getServicePreviewGif(service.id);
   const [showGif, setShowGif] = useState(false);
 
@@ -323,14 +457,329 @@ export default function ServiceDetailScreen({ route, navigation }) {
                 )}
               </Card>
 
-              {/* Quantity Stepper Selection Card */}
-              {isQuantityBasedService && (
+              {/* Moving Help Custom Service Detail Section */}
+              {isMovingService ? (
+                <View style={{ marginBottom: 16 }}>
+                  {/* 1. What are you moving? (Move Size Selection) */}
+                  <Card style={styles.familySizeContainerCard}>
+                    <View style={styles.familySizeHeaderRow}>
+                      <Ionicons name="cube" size={20} color="#0A3925" style={{ marginRight: 8 }} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.familySizeHeaderTitle}>What are you moving?</Text>
+                        <Text style={styles.familySizeHeaderSub}>Select the option that best describes your move.</Text>
+                      </View>
+                    </View>
+
+                    <View style={{ gap: 10 }}>
+                      {MOVE_SIZE_OPTIONS.map((opt) => {
+                        const isSelected = selectedMoveSizeId === opt.id;
+                        return (
+                          <Pressable
+                            key={opt.id}
+                            onPress={() => setSelectedMoveSizeId(opt.id)}
+                            style={[
+                              styles.familyOptionCard,
+                              isSelected ? styles.familyOptionCardSelected : styles.familyOptionCardUnselected
+                            ]}
+                          >
+                            <View style={styles.familyOptionLeftRow}>
+                              <View style={[styles.familyOptionRadioCircle, isSelected && styles.familyOptionRadioCircleSelected]}>
+                                {isSelected ? (
+                                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                                ) : (
+                                  <View style={styles.familyOptionRadioInnerDot} />
+                                )}
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={[styles.familyOptionTitle, isSelected && styles.familyOptionTitleSelected]}>
+                                  {opt.title}
+                                </Text>
+                                <Text style={styles.familyOptionDesc}>{opt.subtitle}</Text>
+                              </View>
+                            </View>
+                            {opt.priceAdjustment > 0 && (
+                              <Text style={[styles.familyOptionPriceText, isSelected && { color: '#0A3925', fontWeight: '800' }]}>
+                                +£{opt.priceAdjustment}
+                              </Text>
+                            )}
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </Card>
+
+                  {/* 2. Moving From & Moving To Addresses */}
+                  <Card style={styles.familySizeContainerCard}>
+                    <View style={styles.familySizeHeaderRow}>
+                      <Ionicons name="map" size={20} color="#0A3925" style={{ marginRight: 8 }} />
+                      <Text style={styles.familySizeHeaderTitle}>Locations</Text>
+                    </View>
+
+                    <View style={{ marginBottom: 12 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6 }}>Moving From (Pickup Address)</Text>
+                      <View style={styles.movingAddressBox}>
+                        <Ionicons name="location" size={18} color="#16A34A" style={{ marginRight: 8 }} />
+                        <TextInput
+                          style={styles.movingAddressInput}
+                          value={pickupAddress}
+                          onChangeText={setPickupAddress}
+                          placeholder="Enter pickup address..."
+                          placeholderTextColor="#94A3B8"
+                        />
+                      </View>
+                    </View>
+
+                    <View>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6 }}>Moving To (Destination Address)</Text>
+                      <View style={styles.movingAddressBox}>
+                        <Ionicons name="pin" size={18} color="#EF4444" style={{ marginRight: 8 }} />
+                        <TextInput
+                          style={styles.movingAddressInput}
+                          value={destinationAddress}
+                          onChangeText={setDestinationAddress}
+                          placeholder="Enter destination address..."
+                          placeholderTextColor="#94A3B8"
+                        />
+                      </View>
+                    </View>
+                  </Card>
+
+                  {/* 3. Property Size (shown if Move Size requires property size) */}
+                  {currentMoveSize.requiresPropertySize && (
+                    <Card style={styles.familySizeContainerCard}>
+                      <View style={styles.familySizeHeaderRow}>
+                        <Ionicons name="home" size={20} color="#0A3925" style={{ marginRight: 8 }} />
+                        <Text style={styles.familySizeHeaderTitle}>What size is the property?</Text>
+                      </View>
+
+                      <View style={styles.propertyGrid}>
+                        {PROPERTY_SIZE_OPTIONS.map((prop) => {
+                          const isSelected = selectedPropertySizeId === prop.id;
+                          return (
+                            <Pressable
+                              key={prop.id}
+                              onPress={() => setSelectedPropertySizeId(prop.id)}
+                              style={[
+                                styles.propertyGridPill,
+                                isSelected ? styles.propertyGridPillSelected : styles.propertyGridPillUnselected
+                              ]}
+                            >
+                              <Text style={[styles.propertyPillText, isSelected && styles.propertyPillTextSelected]}>
+                                {prop.label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </Card>
+                  )}
+
+                  {/* 4. What items need moving? (Optional Item Counters) */}
+                  <Card style={styles.familySizeContainerCard}>
+                    <View style={styles.familySizeHeaderRow}>
+                      <Ionicons name="list" size={20} color="#0A3925" style={{ marginRight: 8 }} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.familySizeHeaderTitle}>What items need moving?</Text>
+                        <Text style={styles.familySizeHeaderSub}>Optional: select items for accurate helper matching.</Text>
+                      </View>
+                    </View>
+
+                    <View style={{ gap: 8 }}>
+                      {MOVING_ITEMS_LIST.map((item) => {
+                        const qty = itemQuantities[item.id] || 0;
+                        return (
+                          <View key={item.id} style={styles.itemRowBox}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                              <Ionicons name={item.icon} size={18} color="#0A3925" style={{ marginRight: 10 }} />
+                              <Text style={{ fontSize: 14, fontWeight: '600', color: '#1E293B' }}>{item.name}</Text>
+                            </View>
+
+                            <View style={styles.itemCounterRow}>
+                              <Pressable
+                                disabled={qty <= 0}
+                                onPress={() => updateItemQty(item.id, -1)}
+                                style={[styles.itemCounterCircleBtn, qty <= 0 && { opacity: 0.4 }]}
+                              >
+                                <Ionicons name="remove" size={14} color="#0A3925" />
+                              </Pressable>
+                              <Text style={styles.itemQtyValText}>{qty}</Text>
+                              <Pressable
+                                onPress={() => updateItemQty(item.id, 1)}
+                                style={styles.itemCounterCircleBtn}
+                              >
+                                <Ionicons name="add" size={14} color="#0A3925" />
+                              </Pressable>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </Card>
+
+                  {/* 5. What help do you need? (Moving Assistance) */}
+                  <Card style={styles.familySizeContainerCard}>
+                    <View style={styles.familySizeHeaderRow}>
+                      <Ionicons name="hand-left" size={20} color="#0A3925" style={{ marginRight: 8 }} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.familySizeHeaderTitle}>What help do you need?</Text>
+                        <Text style={styles.familySizeHeaderSub}>Select optional assistance required.</Text>
+                      </View>
+                    </View>
+
+                    <View style={{ gap: 8 }}>
+                      {MOVING_ASSISTANCE_OPTIONS.map((assist) => {
+                        const isChecked = selectedAssistance.includes(assist.id);
+                        return (
+                          <Pressable
+                            key={assist.id}
+                            onPress={() => toggleAssistance(assist.id)}
+                            style={[
+                              styles.assistanceChipRow,
+                              isChecked ? styles.assistanceChipRowChecked : styles.assistanceChipRowUnchecked
+                            ]}
+                          >
+                            <Ionicons
+                              name={isChecked ? 'checkbox' : 'square-outline'}
+                              size={20}
+                              color={isChecked ? '#0A3925' : '#94A3B8'}
+                              style={{ marginRight: 10 }}
+                            />
+                            <Text style={[styles.assistanceChipLabel, isChecked && { fontWeight: '800', color: '#0A3925' }]}>
+                              {assist.label}
+                            </Text>
+                            <Text style={styles.assistancePriceTag}>+£{assist.price}</Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </Card>
+
+                  {/* 6. Vehicle Requirement */}
+                  <Card style={styles.familySizeContainerCard}>
+                    <View style={styles.familySizeHeaderRow}>
+                      <Ionicons name="car" size={20} color="#0A3925" style={{ marginRight: 8 }} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.familySizeHeaderTitle}>Do you need a vehicle?</Text>
+                      </View>
+                    </View>
+
+                    <View style={{ gap: 10 }}>
+                      {VEHICLE_OPTIONS.map((v) => {
+                        const isSelected = selectedVehicleId === v.id;
+                        return (
+                          <Pressable
+                            key={v.id}
+                            onPress={() => setSelectedVehicleId(v.id)}
+                            style={[
+                              styles.familyOptionCard,
+                              isSelected ? styles.familyOptionCardSelected : styles.familyOptionCardUnselected
+                            ]}
+                          >
+                            <View style={styles.familyOptionLeftRow}>
+                              <View style={[styles.familyOptionRadioCircle, isSelected && styles.familyOptionRadioCircleSelected]}>
+                                {isSelected ? (
+                                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                                ) : (
+                                  <View style={styles.familyOptionRadioInnerDot} />
+                                )}
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={[styles.familyOptionTitle, isSelected && styles.familyOptionTitleSelected]}>
+                                  {v.title}
+                                </Text>
+                                <Text style={styles.familyOptionDesc}>{v.subtitle}</Text>
+                              </View>
+                            </View>
+                            {v.price > 0 && (
+                              <Text style={[styles.familyOptionPriceText, isSelected && { color: '#0A3925', fontWeight: '800' }]}>
+                                +£{v.price}
+                              </Text>
+                            )}
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </Card>
+                </View>
+              ) : isCookingService ? (
+                <Card style={styles.familySizeContainerCard}>
+                  <View style={styles.familySizeHeaderRow}>
+                    <Ionicons name="restaurant" size={20} color="#0A3925" style={{ marginRight: 8 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.familySizeHeaderTitle}>Select Family Size</Text>
+                      <Text style={styles.familySizeHeaderSub}>
+                        Choose the option that best matches the number of people you need the service for.
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.familySizeCardsList}>
+                    {familyOptionsWithPricing.map((opt) => {
+                      const isSelected = selectedFamilySizeId === opt.id;
+                      const addCost = opt.extraUnitsCost;
+                      return (
+                        <Pressable
+                          key={opt.id}
+                          onPress={() => {
+                            setSelectedFamilySizeId(opt.id);
+                            setQuantity(opt.quantity);
+                          }}
+                          style={[
+                            styles.familyOptionCard,
+                            isSelected ? styles.familyOptionCardSelected : styles.familyOptionCardUnselected
+                          ]}
+                        >
+                          <View style={styles.familyOptionLeftRow}>
+                            <View style={[styles.familyOptionRadioCircle, isSelected && styles.familyOptionRadioCircleSelected]}>
+                              {isSelected ? (
+                                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                              ) : (
+                                <View style={styles.familyOptionRadioInnerDot} />
+                              )}
+                            </View>
+
+                            <View style={styles.familyOptionTextCol}>
+                              <View style={styles.familyOptionTitleRow}>
+                                <Text style={[styles.familyOptionTitle, isSelected && styles.familyOptionTitleSelected]}>
+                                  {opt.title}
+                                </Text>
+                                <View style={[styles.peopleBadgePill, isSelected && styles.peopleBadgePillSelected]}>
+                                  <Text style={[styles.peopleBadgeText, isSelected && styles.peopleBadgeTextSelected]}>
+                                    {opt.peopleRange}
+                                  </Text>
+                                </View>
+                              </View>
+                              <Text style={styles.familyOptionDesc}>{opt.description}</Text>
+                            </View>
+                          </View>
+
+                          <View style={styles.familyOptionPriceCol}>
+                            <Text style={[styles.familyOptionPriceText, isSelected && styles.familyOptionPriceTextSelected]}>
+                              £{opt.subtotal.toFixed(2)}
+                            </Text>
+                            {addCost > 0 ? (
+                              <Text style={styles.familyOptionExtraChargeText}>
+                                (+£{addCost.toFixed(2)})
+                              </Text>
+                            ) : (
+                              <Text style={styles.familyOptionBaseIncludedText}>
+                                Base price
+                              </Text>
+                            )}
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </Card>
+              ) : isQuantityBasedService ? (
+                /* Fully Data-Driven Quantity Stepper Card (Using unitConfig) */
                 <Card style={styles.quantityStepperCard}>
                   <View style={styles.quantityHeaderRow}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.quantityTitleText}>Select {quantityUnitLabel}</Text>
+                      <Text style={styles.quantityTitleText}>{unitConfig.sectionTitle}</Text>
                       <Text style={styles.quantitySubText}>
-                        {includedQty} {includedQty === 1 ? quantityUnitLabel.slice(0, -1) : quantityUnitLabel} included in base price
+                        {unitConfig.includedQty} {unitConfig.unitLabelPlural} included in base price
                         {addPrice > 0 ? ` • +£${Number(addPrice).toFixed(2)}/extra` : ''}
                       </Text>
                     </View>
@@ -342,14 +791,16 @@ export default function ServiceDetailScreen({ route, navigation }) {
                       onPress={() => setQuantity(Math.max(minQty, quantity - 1))}
                       style={[styles.stepperCircleBtn, quantity <= minQty && styles.stepperBtnDisabled]}
                       accessibilityRole="button"
-                      accessibilityLabel={`Decrease ${quantityUnitLabel}`}
+                      accessibilityLabel={`Decrease ${unitConfig.unitLabelPlural}`}
                     >
                       <Ionicons name="remove" size={20} color={quantity <= minQty ? '#94A3B8' : '#0A3925'} />
                     </Pressable>
 
                     <View style={styles.quantityValueBox}>
                       <Text style={styles.quantityValueText}>{quantity}</Text>
-                      <Text style={styles.quantityUnitSmallLabel}>{quantityUnitLabel}</Text>
+                      <Text style={styles.quantityUnitSmallLabel}>
+                        {quantity === 1 ? unitConfig.unitLabel : unitConfig.unitLabelPlural}
+                      </Text>
                     </View>
 
                     <Pressable
@@ -357,7 +808,7 @@ export default function ServiceDetailScreen({ route, navigation }) {
                       onPress={() => setQuantity(Math.min(maxQty, quantity + 1))}
                       style={[styles.stepperCircleBtn, quantity >= maxQty && styles.stepperBtnDisabled]}
                       accessibilityRole="button"
-                      accessibilityLabel={`Increase ${quantityUnitLabel}`}
+                      accessibilityLabel={`Increase ${unitConfig.unitLabelPlural}`}
                     >
                       <Ionicons name="add" size={20} color={quantity >= maxQty ? '#94A3B8' : '#0A3925'} />
                     </Pressable>
@@ -367,12 +818,12 @@ export default function ServiceDetailScreen({ route, navigation }) {
                     <View style={styles.extraChargeBanner}>
                       <Ionicons name="information-circle" size={16} color="#0A3925" style={{ marginRight: 6 }} />
                       <Text style={styles.extraChargeBannerText}>
-                        Includes {quantity - includedQty} extra {quantity - includedQty === 1 ? quantityUnitLabel.slice(0, -1).toLowerCase() : quantityUnitLabel.toLowerCase()} (+£{((quantity - includedQty) * addPrice).toFixed(2)})
+                        Includes {quantity - includedQty} extra {quantity - includedQty === 1 ? unitConfig.unitLabel.toLowerCase() : unitConfig.unitLabelPlural.toLowerCase()} (+£{((quantity - includedQty) * addPrice).toFixed(2)})
                       </Text>
                     </View>
                   )}
                 </Card>
-              )}
+              ) : null}
 
               {/* Service Description */}
               <View style={styles.infoSectionBox}>
@@ -407,29 +858,37 @@ export default function ServiceDetailScreen({ route, navigation }) {
                 </View>
               )}
 
-              {/* Custom Add-ons */}
-              {customAddOns.length > 0 && (
+              {/* Add-on Services (Positioned between What's Not Included and FAQs) */}
+              {resolvedAddonsList.length > 0 && (
                 <View style={styles.infoSectionBox}>
-                  <Text style={styles.infoSectionHeading}>Custom Add-ons</Text>
-                  {customAddOns.map((addon) => {
-                    const selected = selectedAddons.some((a) => a.id === addon.id);
+                  <Text style={styles.infoSectionHeading}>Add-on Services</Text>
+                  {resolvedAddonsList.map((addon) => {
+                    const selected = selectedAddons.some((a) => a.id === addon.id || a.serviceId === addon.serviceId);
                     return (
                       <Pressable
                         key={addon.id}
                         onPress={() => handleAddonToggle(addon)}
                         style={[styles.addonCardRow, selected && styles.addonCardRowSelected]}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: selected }}
+                        accessibilityLabel={`Add-on ${addon.name}, plus £${Number(addon.price).toFixed(2)}`}
                       >
                         <Ionicons
                           name={selected ? 'checkbox' : 'square-outline'}
-                          size={20}
-                          color={selected ? '#0A3925' : '#64748B'}
-                          style={{ marginRight: 10 }}
+                          size={22}
+                          color={selected ? '#0A3925' : '#94A3B8'}
+                          style={{ marginRight: 12 }}
                         />
                         <View style={{ flex: 1 }}>
                           <Text style={styles.addonTitleText}>{addon.name}</Text>
                           {addon.description ? <Text style={styles.addonSubText}>{addon.description}</Text> : null}
+                          {addon.requiresSeparateProvider && (
+                            <Text style={{ fontSize: 11, color: '#059669', marginTop: 2, fontWeight: '600' }}>
+                              ✓ Independent Specialist Provider
+                            </Text>
+                          )}
                         </View>
-                        <Text style={styles.addonPriceText}>+£{addon.price}</Text>
+                        <Text style={styles.addonPriceText}>+£{Number(addon.price).toFixed(2)}</Text>
                       </Pressable>
                     );
                   })}
@@ -699,6 +1158,140 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     flex: 1,
   },
+  familySizeContainerCard: {
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  familySizeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  familySizeHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0A3925',
+  },
+  familySizeHeaderSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  familySizeCardsList: {
+    gap: 10,
+  },
+  familyOptionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  familyOptionCardSelected: {
+    borderColor: '#0A3925',
+    backgroundColor: '#F0FDF4',
+  },
+  familyOptionCardUnselected: {
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+  },
+  familyOptionLeftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
+  },
+  familyOptionRadioCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#94A3B8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  familyOptionRadioCircleSelected: {
+    borderColor: '#0A3925',
+    backgroundColor: '#0A3925',
+  },
+  familyOptionRadioInnerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'transparent',
+  },
+  familyOptionTextCol: {
+    flex: 1,
+  },
+  familyOptionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  familyOptionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  familyOptionTitleSelected: {
+    color: '#0A3925',
+    fontWeight: '800',
+  },
+  peopleBadgePill: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  peopleBadgePillSelected: {
+    backgroundColor: '#DCFCE7',
+  },
+  peopleBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  peopleBadgeTextSelected: {
+    color: '#166534',
+    fontWeight: '700',
+  },
+  familyOptionDesc: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  familyOptionPriceCol: {
+    alignItems: 'flex-end',
+  },
+  familyOptionPriceText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  familyOptionPriceTextSelected: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0A3925',
+  },
+  familyOptionExtraChargeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#D97706',
+    marginTop: 1,
+  },
+  familyOptionBaseIncludedText: {
+    fontSize: 10,
+    color: '#16A34A',
+    fontWeight: '600',
+    marginTop: 1,
+  },
   infoSectionBox: { marginBottom: 20 },
   infoSectionHeading: { fontWeight: '800', fontSize: 16, color: '#0A3925', marginBottom: 10 },
   serviceDescText: { fontSize: 14, color: '#4B5563', lineHeight: 22 },
@@ -772,4 +1365,103 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   bookNowPillBtnText: { color: '#FFFFFF', fontWeight: '900', fontSize: 15 },
+  movingAddressBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  movingAddressInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#0F172A',
+    fontWeight: '600',
+  },
+  propertyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  propertyGridPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  propertyGridPillSelected: {
+    borderColor: '#0A3925',
+    backgroundColor: '#F0FDF4',
+  },
+  propertyGridPillUnselected: {
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+  },
+  propertyPillText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  propertyPillTextSelected: {
+    color: '#0A3925',
+    fontWeight: '800',
+  },
+  itemRowBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  itemCounterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  itemCounterCircleBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#0A3925',
+    backgroundColor: '#E6ECE8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemQtyValText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0A3925',
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  assistanceChipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  assistanceChipRowChecked: {
+    borderColor: '#0A3925',
+    backgroundColor: '#F0FDF4',
+  },
+  assistanceChipRowUnchecked: {
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+  },
+  assistanceChipLabel: {
+    flex: 1,
+    fontSize: 13,
+    color: '#334155',
+  },
+  assistancePriceTag: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0A3925',
+  },
 });

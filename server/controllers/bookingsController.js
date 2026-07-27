@@ -158,56 +158,83 @@ exports.create = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Missing required booking fields' });
   }
 
-  const client = await db.getClient();
-  try {
-    await client.query('BEGIN');
+    // Check service status in DB
+    const activeSrvCheck = await db.query('SELECT is_active, is_archived FROM services WHERE id = $1', [categoryId]);
+    if (activeSrvCheck.rows.length === 0 || activeSrvCheck.rows[0].is_active === false || activeSrvCheck.rows[0].is_archived === true) {
+      return res.status(400).json({
+        success: false,
+        message: 'This service is no longer available on HomeHelpUK.'
+      });
+    }
 
-    // Calculate timestamps
-    const startTimeMs = parseTime(date, time) || new Date(`${date}T${time}:00`).getTime();
-    const startTimestamp = new Date(startTimeMs).toISOString();
-    const endTimestamp = new Date(startTimeMs + (Number(durationHours) * 60 * 60 * 1000)).toISOString();
+    // Fetch Admin Configured Commission %
+    let platformCommissionPct = 11.0;
+    const settingsRes = await db.query("SELECT value FROM platform_settings WHERE key = 'platform_commission_pct'");
+    if (settingsRes.rows.length > 0) {
+      platformCommissionPct = Number(settingsRes.rows[0].value) || 11.0;
+    }
 
-    const targetProviderId = (providerId !== 'open' && providerId) ? providerId : null;
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
 
-    // --- CONFLICT & RACE CONDITION CHECK ---
-    if (targetProviderId) {
-      const activeStatuses = ['pending', 'assigned', 'en_route', 'in_progress', 'confirmed', 'accepted'];
-      const conflictRes = await client.query(
-        `SELECT id, date, time, duration_hours as "durationHours"
-         FROM bookings
-         WHERE provider_id = $1
-           AND status = ANY($2)
-           AND (start_timestamp < $4 AND end_timestamp > $3)
-         FOR UPDATE`,
-        [targetProviderId, activeStatuses, startTimestamp, endTimestamp]
-      );
+      // Calculate timestamps
+      const startTimeMs = parseTime(date, time) || new Date(`${date}T${time}:00`).getTime();
+      const startTimestamp = new Date(startTimeMs).toISOString();
+      const endTimestamp = new Date(startTimeMs + (Number(durationHours) * 60 * 60 * 1000)).toISOString();
 
-      if (conflictRes.rows.length > 0) {
-        await client.query('ROLLBACK');
-        return res.status(409).json({
-          success: false,
-          message: 'This provider is already booked at this time. Please select another time or provider.'
-        });
+      const targetProviderId = (providerId !== 'open' && providerId) ? providerId : null;
+
+      // --- CONFLICT & RACE CONDITION CHECK ---
+      if (targetProviderId) {
+        const activeStatuses = ['pending', 'assigned', 'en_route', 'in_progress', 'confirmed', 'accepted'];
+        const conflictRes = await client.query(
+          `SELECT id, date, time, duration_hours as "durationHours"
+           FROM bookings
+           WHERE provider_id = $1
+             AND status = ANY($2)
+             AND (start_timestamp < $4 AND end_timestamp > $3)
+           FOR UPDATE`,
+          [targetProviderId, activeStatuses, startTimestamp, endTimestamp]
+        );
+
+        if (conflictRes.rows.length > 0) {
+          await client.query('ROLLBACK');
+          return res.status(409).json({
+            success: false,
+            message: 'This provider is already booked at this time. Please select another time or provider.'
+          });
+        }
       }
-    }
 
-    // Rates & Calculation
-    let baseServiceRate = 20;
-    const srvRes = await client.query('SELECT price FROM services WHERE id = $1', [categoryId]);
-    if (srvRes.rows.length > 0) {
-      baseServiceRate = Number(srvRes.rows[0].price);
-    }
+      // Rates & Calculation (Admin is Single Source of Truth)
+      let baseServiceRate = 20;
+      let serviceName = 'HomeHelpUK Service';
+      let pricingRulesObj = {};
 
-    if (targetProviderId) {
-      const psRes = await client.query('SELECT custom_price FROM provider_services WHERE provider_id = $1 AND service_id = $2', [targetProviderId, categoryId]);
-      if (psRes.rows.length > 0 && psRes.rows[0].custom_price !== null) {
-        baseServiceRate = Number(psRes.rows[0].custom_price);
+      const srvRes = await client.query('SELECT name, price, pricing_rules FROM services WHERE id = $1', [categoryId]);
+      if (srvRes.rows.length > 0) {
+        baseServiceRate = Number(srvRes.rows[0].price);
+        serviceName = srvRes.rows[0].name;
+        pricingRulesObj = srvRes.rows[0].pricing_rules || {};
       }
-    }
 
-    const subtotal = pricingBreakdown ? pricingBreakdown.subtotal : (baseServiceRate * Number(durationHours));
-    const serviceFee = pricingBreakdown ? pricingBreakdown.platformFee : (Math.round(subtotal * (PLATFORM_COMMISSION_PCT / 100) * 100) / 100);
-    const total = pricingBreakdown ? pricingBreakdown.total : (Math.round((subtotal + serviceFee) * 100) / 100);
+      const subtotal = pricingBreakdown ? Number(pricingBreakdown.subtotal) : (baseServiceRate * Number(durationHours));
+      const serviceFee = pricingBreakdown ? Number(pricingBreakdown.platformFee || pricingBreakdown.trustFee) : (Math.round(subtotal * (platformCommissionPct / 100) * 100) / 100);
+      const total = pricingBreakdown ? Number(pricingBreakdown.total) : (Math.round((subtotal + serviceFee) * 100) / 100);
+
+      const pricingSnapshot = {
+        serviceId: categoryId,
+        serviceNameSnapshot: serviceName,
+        pricingModelSnapshot: pricingRulesObj.pricingModel || 'unit',
+        basePriceSnapshot: baseServiceRate,
+        quantitySnapshot: Number(serviceQuantity) || 1,
+        durationSnapshot: Number(durationHours) || 1,
+        addonsSnapshot: pricingBreakdown?.addons || [],
+        finalPriceSnapshot: total,
+        platformCommissionPct: platformCommissionPct,
+        capturedAt: new Date().toISOString()
+      };
 
     const bookingId = generateId('booking');
     const startOtp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -244,7 +271,7 @@ exports.create = async (req, res) => {
         completionOtp,
         JSON.stringify({}),
         JSON.stringify(pricingBreakdown || null),
-        JSON.stringify(req.body.pricingSnapshot || null)
+        JSON.stringify(pricingSnapshot)
       ]
     );
 

@@ -5,6 +5,9 @@
 
 export const CATEGORY_IMAGES = {
   'cat_cooking': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80&slot=1',
+  'Private Chef': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80&slot=1',
+  'Home Cooking': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80&slot=1',
+  'Cooking': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80&slot=1',
   'cat_cleaning': 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80&slot=2',
   'cat_plumbing': 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=800&q=80&slot=3', // Pipe repair & wrench
   'cat_electrical': 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&q=80&slot=4', // Circuit breaker
@@ -23,8 +26,15 @@ export const CATEGORY_IMAGES = {
   'cat_care_services': 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800&q=80&slot=17', // Elderly care
 };
 
-export const getCategoryImage = (categoryId) => {
-  const img = CATEGORY_IMAGES[categoryId];
+export const getCategoryImage = (categoryOrId) => {
+  if (typeof categoryOrId === 'object' && categoryOrId !== null) {
+    if (categoryOrId.imageUrl) {
+      return { uri: categoryOrId.imageUrl };
+    }
+    return getCategoryImage(categoryOrId.id || categoryOrId.name);
+  }
+
+  const img = CATEGORY_IMAGES[categoryOrId];
   if (img) return { uri: img };
   return { uri: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80' };
 };

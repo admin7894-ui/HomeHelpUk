@@ -2,24 +2,31 @@ const db = require('../db');
 const { mergeServiceDetails } = require('../utils/serviceMerger');
 
 async function fetchFullCategoriesHierarchy() {
-  const catRes = await db.query('SELECT * FROM categories ORDER BY name ASC');
+  const catRes = await db.query('SELECT * FROM categories ORDER BY order_index ASC, name ASC');
   const subRes = await db.query('SELECT * FROM subcategories ORDER BY name ASC');
-  const srvRes = await db.query('SELECT * FROM services ORDER BY name ASC');
+  const srvRes = await db.query('SELECT * FROM services ORDER BY order_index ASC, name ASC');
 
   const categories = catRes.rows.map(cat => ({
     id: cat.id,
     name: cat.name,
     icon: cat.icon,
+    imageUrl: cat.image_url || '',
     price: Number(cat.price),
     unit: cat.unit,
     description: cat.description,
+    isVisible: cat.is_visible !== false,
     subcategories: subRes.rows
       .filter(sub => sub.category_id === cat.id)
       .map(sub => ({
         id: sub.id,
         name: sub.name,
         services: srvRes.rows
-          .filter(srv => srv.subcategory_id === sub.id || srv.category_id === cat.id)
+          .filter(srv =>
+            (srv.subcategory_id === sub.id || srv.category_id === cat.id) &&
+            srv.is_active !== false &&
+            srv.is_archived !== true &&
+            srv.is_visible !== false
+          )
           .map(srv => ({
             id: srv.id,
             name: srv.name,
@@ -27,6 +34,8 @@ async function fetchFullCategoriesHierarchy() {
             unit: srv.unit,
             duration: srv.duration,
             description: srv.description,
+            imageUrl: srv.image_url || '',
+            galleryImages: srv.gallery_images || [],
             ukTypicalPrice: srv.uk_typical_price,
             londonPrice: srv.london_price,
             mvpPrice: Number(srv.price),
@@ -35,14 +44,22 @@ async function fetchFullCategoriesHierarchy() {
             additionalCharge: Number(srv.additional_charge),
             maxQuantity: srv.max_quantity,
             whatsIncluded: srv.whats_included || [],
+            includedItems: srv.whats_included || [],
             whatsNotIncluded: srv.whats_not_included || [],
+            notIncludedItems: srv.whats_not_included || [],
             addons: srv.addons || [],
+            availableAddOns: srv.addons || [],
             faqs: srv.faqs || [],
             pricingRules: srv.pricing_rules || {},
+            schedulingConfig: srv.scheduling_config || {},
+            bookingRules: srv.booking_rules || {},
+            customerRequirements: srv.customer_requirements || [],
+            providerEligibility: srv.provider_eligibility || {},
             dynamicPricing: srv.dynamic_pricing || {}
           }))
       }))
-  }));
+      .filter(sub => sub.services.length > 0)
+  })).filter(cat => cat.subcategories.length > 0);
 
   return categories;
 }

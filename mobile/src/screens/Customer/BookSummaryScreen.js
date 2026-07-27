@@ -10,6 +10,7 @@ import { useAppStore } from '../../store/appStore';
 import { useBookingStore } from '../../store/bookingStore';
 import { getTheme, scaledFont, spacing, radii } from '../../utils/theme';
 import { calculateServicePrice } from '../../utils/pricingEngine';
+import { getServiceConfig } from '../../utils/serviceConfig';
 
 export default function BookSummaryScreen({ navigation }) {
   const { highContrast, fontScale } = useAppStore();
@@ -67,13 +68,17 @@ export default function BookSummaryScreen({ navigation }) {
   const baseServiceRate = (typeof providerService === 'object' ? providerService.customPrice : null) || provider?.hourlyRate || draft.servicePrice || 20;
   const providerPricingRules = (typeof providerService === 'object' && providerService.pricingRules) ? providerService.pricingRules : (draft.pricingRules || {});
 
+  const serviceConfig = draft.serviceConfig || getServiceConfig(draft.serviceId, { id: draft.serviceId, name: draft.serviceName, price: draft.servicePrice, unit: draft.serviceUnit }, { id: draft.categoryId });
+
   const calc = calculateServicePrice({
     basePrice: baseServiceRate,
-    durationHours: draft.durationHours || 2,
+    durationHours: draft.durationHours || serviceConfig?.durationConfig?.defaultDurationHours || 2,
     quantity: draft.serviceQuantity || 1,
     selectedAddons: draft.addOns || [],
     serviceUnit: draft.serviceUnit || 'hr',
-    pricingRules: providerPricingRules
+    pricingRules: providerPricingRules,
+    serviceConfig,
+    serviceId: draft.serviceId
   });
 
   // Apply Coupon Discount if applicable
@@ -92,7 +97,7 @@ export default function BookSummaryScreen({ navigation }) {
     // Navigate to payment screen passing billing details
     navigation.navigate('Payment', {
       billing: {
-        baseServiceCost: calc.baseServiceCost,
+        baseServiceCost: calc.basePrice,
         durationHours: calc.durationHours,
         serviceUnit: draft.serviceUnit,
         includedQuantity: calc.includedQuantity,
@@ -100,6 +105,7 @@ export default function BookSummaryScreen({ navigation }) {
         extraQuantity: calc.extraUnits,
         additionalQuantityCharge: calc.extraUnitsCost,
         addonsSubtotal: calc.addonsCost,
+        selectedAddons: draft.addOns || [],
         subtotal: calc.subtotal,
         platformFee: calc.platformFee,
         discount: discountCost,
@@ -150,18 +156,26 @@ export default function BookSummaryScreen({ navigation }) {
               Booking Duration: {calc.durationHours} hours
             </Text>
           )}
-          {calc.pricingModel !== 'fixed' && (
+          {draft.familySizeLabel ? (
+            <Text style={[styles.detailSubtext, { color: theme.customerAccent, fontWeight: '700', marginTop: 2 }]}>
+              Family Size: {draft.familySizeLabel}
+            </Text>
+          ) : draft.unitConfig ? (
+            <Text style={[styles.detailSubtext, { color: theme.textMuted, marginTop: 2 }]}>
+              {calc.selectedQuantity === 1 ? draft.unitConfig.unitLabel : draft.unitConfig.unitLabelPlural} Booked: {calc.selectedQuantity}
+            </Text>
+          ) : calc.pricingModel !== 'fixed' ? (
             <Text style={[styles.detailSubtext, { color: theme.textMuted, marginTop: 2 }]}>
               {unitLabelCapitalized}s Booked: {calc.selectedQuantity}
             </Text>
-          )}
+          ) : null}
 
           {/* Add-ons List */}
           {draft.addOns && draft.addOns.length > 0 && (
             <View style={styles.addonsList}>
               <Text style={[styles.addonsLabel, { color: theme.text }]}>Selected Add-ons:</Text>
-              {draft.addOns.map((add) => (
-                <View key={add.id} style={styles.addonLine}>
+              {draft.addOns.map((add, idx) => (
+                <View key={add.serviceId || add.id || idx} style={styles.addonLine}>
                   <Text style={{ color: theme.textMuted }}>• {add.name}</Text>
                   <Text style={{ color: theme.text, fontWeight: '600' }}>+£{add.price}</Text>
                 </View>
@@ -169,6 +183,63 @@ export default function BookSummaryScreen({ navigation }) {
             </View>
           )}
         </Card>
+
+        {/* Moving Details Card */}
+          {draft.movingDetails && (
+            <Card style={styles.summaryCard}>
+              <Text style={[styles.cardTitle, { color: theme.textMuted }]}>MOVING DETAILS</Text>
+
+              <View style={styles.scheduleDetailRow}>
+                <Ionicons name="cube-outline" size={18} color={theme.customerAccent} style={styles.detailIcon} />
+                <Text style={{ color: theme.text, fontWeight: '700', flex: 1 }}>
+                  Move Size: {draft.movingDetails.moveSize?.title} ({draft.movingDetails.moveSize?.subtitle})
+                </Text>
+              </View>
+
+              {draft.movingDetails.propertySize && (
+                <View style={styles.scheduleDetailRow}>
+                  <Ionicons name="home-outline" size={18} color={theme.customerAccent} style={styles.detailIcon} />
+                  <Text style={{ color: theme.text, flex: 1 }}>
+                    Property Size: <Text style={{ fontWeight: '700' }}>{draft.movingDetails.propertySize.label}</Text>
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.scheduleDetailRow}>
+                <Ionicons name="location-outline" size={18} color="#16A34A" style={styles.detailIcon} />
+                <Text style={{ color: theme.textMuted, flex: 1 }}>
+                  Pickup: <Text style={{ color: theme.text, fontWeight: '600' }}>{draft.movingDetails.pickupAddress}</Text>
+                </Text>
+              </View>
+
+              <View style={styles.scheduleDetailRow}>
+                <Ionicons name="pin-outline" size={18} color="#EF4444" style={styles.detailIcon} />
+                <Text style={{ color: theme.textMuted, flex: 1 }}>
+                  Destination: <Text style={{ color: theme.text, fontWeight: '600' }}>{draft.movingDetails.destinationAddress}</Text>
+                </Text>
+              </View>
+
+              {draft.movingDetails.vehicle && (
+                <View style={styles.scheduleDetailRow}>
+                  <Ionicons name="car-outline" size={18} color={theme.customerAccent} style={styles.detailIcon} />
+                  <Text style={{ color: theme.text, flex: 1 }}>
+                    Vehicle: <Text style={{ fontWeight: '700' }}>{draft.movingDetails.vehicle.title}</Text>
+                  </Text>
+                </View>
+              )}
+
+              {draft.movingDetails.assistance && draft.movingDetails.assistance.length > 0 && (
+                <View style={{ marginTop: 8 }}>
+                  <Text style={[styles.addonsLabel, { color: theme.text }]}>Selected Assistance:</Text>
+                  {draft.movingDetails.assistance.map((a, idx) => (
+                    <Text key={idx} style={{ color: theme.textMuted, fontSize: 13, marginLeft: 8, marginTop: 2 }}>
+                      • {a?.label || 'Assistance'} (+£{a?.price || 0})
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </Card>
+          )}
 
         {/* 2. Schedule & Location Details */}
         <Card style={styles.summaryCard}>
@@ -216,7 +287,9 @@ export default function BookSummaryScreen({ navigation }) {
           </View>
           {couponError ? <Text style={[styles.couponMsg, { color: theme.danger }]}>{couponError}</Text> : null}
           {couponSuccess ? <Text style={[styles.couponMsg, { color: theme.success }]}>{couponSuccess}</Text> : null}
-          <Text style={styles.hintText}>Try coupon "SUMMER20" for 20% off deep cleaning or standard cleaning!</Text>
+          <Text style={styles.hintText}>
+            Try coupon "SUMMER20" or "WELCOME10" for 10-20% off your {(draft.serviceName || 'service').toLowerCase()} booking!
+          </Text>
         </View>
 
         {/* 4. Payment Breakdown */}
@@ -242,12 +315,19 @@ export default function BookSummaryScreen({ navigation }) {
             </View>
           )}
 
-          {calc.addonsCost > 0 && (
+          {draft.addOns && draft.addOns.length > 0 ? (
+            draft.addOns.map((add, idx) => (
+              <View key={add.serviceId || add.id || `addon_${idx}`} style={styles.billingLine}>
+                <Text style={{ color: theme.textMuted }}>{add.name} (Add-on)</Text>
+                <Text style={{ color: theme.text, fontWeight: '600' }}>+£{Number(add.price).toFixed(2)}</Text>
+              </View>
+            ))
+          ) : calc.addonsCost > 0 ? (
             <View style={styles.billingLine}>
               <Text style={{ color: theme.textMuted }}>Add-ons Cost</Text>
               <Text style={{ color: theme.text, fontWeight: '600' }}>+£{calc.addonsCost.toFixed(2)}</Text>
             </View>
-          )}
+          ) : null}
 
           {discountCost > 0 && (
             <View style={styles.billingLine}>

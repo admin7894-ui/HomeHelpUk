@@ -11,12 +11,21 @@ const notificationsRoutes = require('./routes/notifications');
 const profileRoutes = require('./routes/profile');
 const walletRoutes = require('./routes/wallet');
 const chatsRoutes = require('./routes/chats');
+const adminRoutes = require('./routes/admin');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve Admin Web Panel statically at /admin
+const adminPanelPath = path.join(__dirname, '../admin-panel');
+app.use('/admin', express.static(adminPanelPath));
+app.get(['/admin', '/admin/*'], (req, res) => {
+  res.sendFile(path.join(adminPanelPath, 'index.html'));
+});
 
 // Simple request log — handy during the investor demo
 app.use((req, res, next) => {
@@ -38,6 +47,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
+app.use('/api/admin', adminRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/providers', providersRoutes);
