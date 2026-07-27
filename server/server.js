@@ -17,7 +17,26 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+const allowedOrigins = [
+  process.env.ADMIN_PANEL_URL,
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  'https://home-help-uk-gvf1.vercel.app',
+  'http://localhost:4000',
+  'http://localhost:3000',
+  'http://127.0.0.1:4000'
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, postman, same-origin)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy violation: Origin not allowed'));
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Serve Admin Web Panel statically at /admin

@@ -1,5 +1,5 @@
 // HOMEHELP UK — ADMIN PANEL APPLICATION LOGIC (UX REFINED)
-const API_BASE = '/api/admin';
+const API_BASE = (window.HOMEHELP_ADMIN_CONFIG && window.HOMEHELP_ADMIN_CONFIG.API_BASE) || '/api/admin';
 
 let token = localStorage.getItem('adminToken') || null;
 let currentAdmin = JSON.parse(localStorage.getItem('adminUser') || 'null');
