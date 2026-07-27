@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "admin-panel/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/admin/(.*)",
+      "dest": "/server/server.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/server/server.js"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "/admin-panel/$1"
+    },
+    {
+      "src": "/admin",
+      "dest": "/admin-panel/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server/server.js"
+    }
+  ]
+}
