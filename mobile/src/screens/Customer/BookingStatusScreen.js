@@ -40,6 +40,38 @@ export default function BookingStatusScreen({ route, navigation }) {
 
   useEffect(() => {
     load();
+
+    const { getSocket, joinBookingRoom, leaveBookingRoom } = require('../../services/socket');
+    joinBookingRoom(bookingId);
+
+    const socket = getSocket();
+    if (socket) {
+      const handleStatusUpdate = (data) => {
+        if (data.bookingId === bookingId || data.booking?.id === bookingId) {
+          console.log('[Real-Time Status Update Received]', data);
+          if (data.booking) {
+            setBooking(data.booking);
+          } else {
+            load();
+          }
+        }
+      };
+
+      socket.on('booking:accepted', handleStatusUpdate);
+      socket.on('booking:declined', handleStatusUpdate);
+      socket.on('booking:status_changed', handleStatusUpdate);
+      socket.on('booking:completed', handleStatusUpdate);
+      socket.on('booking:cancelled', handleStatusUpdate);
+
+      return () => {
+        leaveBookingRoom(bookingId);
+        socket.off('booking:accepted', handleStatusUpdate);
+        socket.off('booking:declined', handleStatusUpdate);
+        socket.off('booking:status_changed', handleStatusUpdate);
+        socket.off('booking:completed', handleStatusUpdate);
+        socket.off('booking:cancelled', handleStatusUpdate);
+      };
+    }
   }, [bookingId]);
 
   if (loading && !booking) {

@@ -18,17 +18,24 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (loading) return; // Prevent double submission
     if (!email || !password) {
       Alert.alert('Missing details', 'Please enter your email and password.');
       return;
     }
     setLoading(true);
+    const t0 = Date.now();
     try {
+      console.log('[PERF] Login API request initiated');
       const { data } = await api.post('/auth/login', { email, password });
+      const t1 = Date.now();
+      console.log(`[PERF] Login API response received: ${t1 - t0}ms`);
+      
       await login(data.user, data.token);
+      const t2 = Date.now();
+      console.log(`[PERF] Session stored & state updated: ${t2 - t1}ms (Total Login Flow: ${t2 - t0}ms)`);
     } catch (err) {
       Alert.alert('Login failed', err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -49,10 +56,11 @@ export default function LoginScreen({ navigation }) {
         placeholder="you@example.com"
         keyboardType="email-address"
         autoCapitalize="none"
+        editable={!loading}
       />
-      <AccessibleTextInput label="Password" value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
+      <AccessibleTextInput label="Password" value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry editable={!loading} />
 
-      <AppButton label="Log In" onPress={handleLogin} loading={loading} />
+      <AppButton label={loading ? 'Signing in...' : 'Log In'} onPress={handleLogin} loading={loading} disabled={loading} />
 
       <Text
         onPress={() => navigation.navigate('Register')}

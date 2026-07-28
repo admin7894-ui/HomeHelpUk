@@ -53,12 +53,15 @@ exports.getAll = async (req, res) => {
     `;
     const queryParams = [];
 
+    let providerIdForFilter = null;
+
     if (req.user && req.user.role === 'customer') {
       queryParams.push(req.user.id);
       queryText += ` AND b.customer_id = $${queryParams.length}`;
     } else if (req.user && req.user.role === 'provider') {
       const pRes = await db.query('SELECT p.id, p.user_id FROM providers p WHERE p.user_id = $1', [req.user.id]);
       const pId = pRes.rows[0] ? pRes.rows[0].id : null;
+      providerIdForFilter = pId;
 
       if (!pId) {
         return res.json({ success: true, bookings: [] });
@@ -96,15 +99,11 @@ exports.getAll = async (req, res) => {
       return formatted;
     });
 
-    if (req.user && req.user.role === 'provider') {
-      const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [req.user.id]);
-      const pId = pRes.rows[0] ? pRes.rows[0].id : null;
-      if (pId) {
-        bookings = bookings.filter(b => {
-          const hasDeclined = b.declineRecords && b.declineRecords.some(d => d.providerId === pId);
-          return !hasDeclined;
-        });
-      }
+    if (req.user && req.user.role === 'provider' && providerIdForFilter) {
+      bookings = bookings.filter(b => {
+        const hasDeclined = b.declineRecords && b.declineRecords.some(d => d.providerId === providerIdForFilter);
+        return !hasDeclined;
+      });
     }
 
     res.json({
@@ -294,6 +293,21 @@ exports.create = async (req, res) => {
     const formatted = formatBookingRow(createdRes.rows[0]);
     formatted.customerName = createdRes.rows[0].customer_name;
 
+    // Trigger Real-Time Socket Broadcasts
+    try {
+      const socket = require('../utils/socket');
+      if (targetProviderId) {
+        socket.emitBookingCreated(formatted, [targetProviderId]);
+      } else {
+        // Fetch all eligible providers for open broadcast
+        const catProvRes = await db.query('SELECT provider_id FROM provider_categories WHERE category_id = $1', [categoryId]);
+        const eligiblePids = catProvRes.rows.map(r => r.provider_id);
+        socket.emitBookingCreated(formatted, eligiblePids);
+      }
+    } catch (sErr) {
+      console.warn('[Socket Broadcast Error]', sErr.message);
+    }
+
     res.status(201).json({ success: true, booking: sanitizeBookingForResponse(req, formatted) });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -448,6 +462,23 @@ exports.updateStatus = async (req, res) => {
     const formatted = formatBookingRow(updatedRes.rows[0]);
     formatted.customerName = updatedRes.rows[0].customer_name;
 
+    // Trigger Real-Time Socket Broadcasts
+    try {
+      const socket = require('../utils/socket');
+      if (status === 'assigned') {
+        socket.emitBookingAccepted(formatted);
+      } else if (status === 'completed') {
+        socket.emitBookingCompleted(formatted);
+        if (updatedProviderId) {
+          socket.emitWalletUpdated(updatedProviderId, { bookingId: booking.id });
+        }
+      } else {
+        socket.emitBookingStatusChanged(formatted);
+      }
+    } catch (sErr) {
+      console.warn('[Socket Status Broadcast Error]', sErr.message);
+    }
+
     res.json({ success: true, booking: sanitizeBookingForResponse(req, formatted) });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -469,7 +500,7 @@ exports.decline = async (req, res) => {
     const pId = pRes.rows[0] ? pRes.rows[0].id : null;
     if (!pId) return res.status(403).json({ success: false, message: 'Access denied' });
 
-    const bRes = await db.query('SELECT decline_records FROM bookings WHERE id = $1', [req.params.id]);
+    const bRes = await db.query('SELECT * FROM bookings WHERE id = $1', [req.params.id]);
     if (bRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
 
     let declineRecords = bRes.rows[0].decline_records || [];
@@ -485,6 +516,15 @@ exports.decline = async (req, res) => {
       });
 
       await db.query('UPDATE bookings SET decline_records = $1 WHERE id = $2', [JSON.stringify(declineRecords), req.params.id]);
+    }
+
+    // Emit Socket Broadcast for Decline
+    try {
+      const socket = require('../utils/socket');
+      const formatted = formatBookingRow(bRes.rows[0]);
+      socket.emitBookingDeclined(formatted, pId);
+    } catch (sErr) {
+      console.warn('[Socket Decline Broadcast Error]', sErr.message);
     }
 
     res.json({ success: true, message: 'Job declined successfully' });

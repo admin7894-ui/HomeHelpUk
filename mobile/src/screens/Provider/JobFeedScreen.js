@@ -1,7 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Pressable, RefreshControl, Alert, ActivityIndicator, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import ScreenContainer from '../../components/ScreenContainer';
 import Card from '../../components/Card';
 import { useAppStore } from '../../store/appStore';
@@ -13,7 +12,7 @@ import { getTheme, scaledFont, spacing, radii } from '../../utils/theme';
 export default function JobFeedScreen({ navigation }) {
   const { highContrast, fontScale } = useAppStore();
   const { user } = useAuthStore();
-  const { categories, fetchCategories } = useBookingStore();
+  const { categories, fetchCategories, fetchProviderDetails } = useBookingStore();
   const theme = getTheme(highContrast);
 
   const [jobs, setJobs] = useState([]);
@@ -35,36 +34,39 @@ export default function JobFeedScreen({ navigation }) {
     'Other'
   ];
 
-  const load = useCallback(async (currentFilter = filter) => {
-    setLoading(true);
+  const load = useCallback(async (currentFilter = filter, force = false) => {
+    if (!jobs.length) setLoading(true);
+    const t0 = Date.now();
     try {
+      console.log('[PERF][ProviderJobFeed] Job feed load initiated');
       const params = { providerId: user.providerId, status: 'pending' };
       if (currentFilter !== 'all') params.category = currentFilter;
       
-      const { data } = await api.get('/bookings', { params });
-      setJobs(data.bookings);
+      const pJobs = api.get('/bookings', { params });
+      const pCat = fetchCategories(force);
+      const pProv = user?.providerId ? fetchProviderDetails(user.providerId, force) : Promise.resolve(null);
+
+      const [{ data }, _, provDetails] = await Promise.all([pJobs, pCat, pProv]);
+      
+      if (provDetails && provDetails.categories) {
+        setActiveCategoryIds(provDetails.categories);
+      }
+      setJobs(data.bookings || []);
+      console.log(`[PERF][ProviderJobFeed] Total load time: ${Date.now() - t0}ms`);
     } catch (err) {
       // non-fatal in demo
     } finally {
       setLoading(false);
     }
-  }, [user, filter]);
+  }, [user, filter, fetchCategories, fetchProviderDetails, jobs.length]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchCategories();
-      if (user?.providerId) {
-        api.get(`/providers/${user.providerId}`).then(({ data }) => {
-          setActiveCategoryIds(data.provider.categories || []);
-        });
-      }
-      load();
-    }, [load, fetchCategories, user])
-  );
+  useEffect(() => {
+    load(filter, false);
+  }, [filter, user?.providerId]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await load();
+    await load(filter, true);
     setRefreshing(false);
   };
 

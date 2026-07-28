@@ -7,5 +7,6 @@ router.use(authMiddleware);
 
 router.patch('/:id', profileController.update);
 router.post('/:id/favourites', profileController.toggleFavourite);
+router.post('/push-token', profileController.savePushToken);
 
 module.exports = router;

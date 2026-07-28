@@ -77,9 +77,52 @@ const logoutBtn = document.getElementById('logoutBtn');
 const refreshBtn = document.getElementById('refreshBtn');
 
 // Initialize Application
+let adminSocket = null;
+
+function initAdminSocket() {
+  if (typeof io === 'undefined' || !token) return;
+  if (adminSocket && adminSocket.connected) return;
+
+  const socketUrl = window.location.origin;
+  adminSocket = io(socketUrl, {
+    auth: { token },
+    transports: ['websocket', 'polling']
+  });
+
+  adminSocket.on('connect', () => {
+    console.log('[Admin Socket Connected] Joined admin_dashboard room');
+  });
+
+  adminSocket.on('booking:created', (data) => {
+    showToast(`New booking created (${data.booking?.id || ''})`, 'info');
+    if (document.getElementById('tab-dashboard')?.classList.contains('active')) {
+      loadDashboardStats();
+    }
+  });
+
+  adminSocket.on('booking:status_changed', (data) => {
+    showToast(`Booking ${data.bookingId || ''} status: ${data.status}`, 'info');
+    if (document.getElementById('tab-dashboard')?.classList.contains('active')) {
+      loadDashboardStats();
+    }
+  });
+
+  adminSocket.on('booking:completed', (data) => {
+    showToast(`Booking ${data.bookingId || ''} marked completed`, 'success');
+    if (document.getElementById('tab-dashboard')?.classList.contains('active')) {
+      loadDashboardStats();
+    }
+  });
+
+  adminSocket.on('catalog:updated', (data) => {
+    console.log('[Admin Socket] Catalog update received:', data);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (token && currentAdmin) {
     showDashboard();
+    initAdminSocket();
   } else {
     showLogin();
   }

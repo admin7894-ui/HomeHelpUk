@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Pressable, RefreshControl, ActivityIndicator } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import ScreenContainer from '../../components/ScreenContainer';
 import Card from '../../components/Card';
 import { useAppStore } from '../../store/appStore';
@@ -22,7 +21,7 @@ const STATUS_LABELS = {
 export default function MyJobsScreen({ navigation }) {
   const { highContrast, fontScale } = useAppStore();
   const { user } = useAuthStore();
-  const { categories, fetchCategories } = useBookingStore();
+  const { categories, fetchCategories, fetchProviderDetails } = useBookingStore();
   const theme = getTheme(highContrast);
 
   const [jobs, setJobs] = useState([]);
@@ -32,45 +31,43 @@ export default function MyJobsScreen({ navigation }) {
   const [tab, setTab] = useState('accepted');
   const [availability, setAvailability] = useState({ Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false });
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (force = false) => {
+    if (!jobs.length) setLoading(true);
+    const t0 = Date.now();
     try {
-      setLoading(true);
-      const [acceptedRes, declinedRes] = await Promise.all([
-        api.get('/bookings', { params: { providerId: user.providerId } }),
-        api.get('/bookings/declined')
-      ]);
+      console.log('[PERF][MyJobs] Jobs load initiated');
+      const pAccepted = api.get('/bookings', { params: { providerId: user.providerId } });
+      const pDeclined = api.get('/bookings/declined');
+      const pCat = fetchCategories(force);
+      const pProv = user?.providerId ? fetchProviderDetails(user.providerId, force) : Promise.resolve(null);
+
+      const [acceptedRes, declinedRes, _, provDetails] = await Promise.all([pAccepted, pDeclined, pCat, pProv]);
       
       setJobs(acceptedRes.data.bookings.filter((b) => b.status !== 'pending'));
       setDeclinedJobs(declinedRes.data.bookings || []);
+
+      if (provDetails && provDetails.availability) {
+        const avail = {};
+        DAYS.forEach((day) => {
+          avail[day] = provDetails.availability.weekly && provDetails.availability.weekly[day]?.length > 0;
+        });
+        setAvailability(avail);
+      }
+      console.log(`[PERF][MyJobs] Total load time: ${Date.now() - t0}ms`);
     } catch (err) {
       console.warn("Error fetching jobs", err);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, fetchCategories, fetchProviderDetails, jobs.length]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchCategories();
-      if (user?.providerId) {
-        api.get(`/providers/${user.providerId}`).then(({ data }) => {
-          const p = data.provider;
-          if (p.availability) {
-            const avail = {};
-            DAYS.forEach((day) => {
-              avail[day] = p.availability.weekly && p.availability.weekly[day]?.length > 0;
-            });
-            setAvailability(avail);
-          }
-        });
-      }
-      load();
-    }, [load, fetchCategories, user])
-  );
+  useEffect(() => {
+    load(false);
+  }, [user?.providerId]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await load();
+    await load(true);
     setRefreshing(false);
   };
 

@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../db');
 const { generateId, generateFakeToken } = require('../utils/helpers');
+const { invalidateCategoriesCache } = require('./categoriesController');
 
 // --- 1. ADMIN AUTHENTICATION ---
 exports.login = async (req, res) => {
@@ -173,6 +174,14 @@ exports.updateCategory = async (req, res) => {
         id
       ]
     );
+
+    invalidateCategoriesCache();
+
+    // Broadcast Socket Event for Catalog Change
+    try {
+      const socket = require('../utils/socket');
+      socket.emitCatalogUpdated('updateCategory', { id });
+    } catch (sErr) {}
 
     res.json({ success: true, message: 'Category updated successfully' });
   } catch (err) {

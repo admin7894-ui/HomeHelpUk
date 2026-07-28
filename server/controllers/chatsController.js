@@ -221,6 +221,22 @@ exports.sendMessage = async (req, res) => {
       read: false
     };
 
+    // Emit Real-Time Socket Broadcast
+    try {
+      const socket = require('../utils/socket');
+      const convRes = await db.query('SELECT customer_id, provider_id FROM conversations WHERE id = $1', [convId]);
+      if (convRes.rows.length > 0) {
+        socket.emitMessageSent(newMessage, {
+          id: convId,
+          bookingId,
+          customerId: convRes.rows[0].customer_id,
+          providerId: convRes.rows[0].provider_id
+        });
+      }
+    } catch (sErr) {
+      console.warn('[Socket Chat Broadcast Error]', sErr.message);
+    }
+
     res.status(201).json({ success: true, message: newMessage });
   } catch (err) {
     console.error('[Chats sendMessage Error]', err);

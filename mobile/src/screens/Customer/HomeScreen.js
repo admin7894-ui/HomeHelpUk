@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, ScrollView, Dimensions, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image, ScrollView, Dimensions, TextInput, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenContainer from '../../components/ScreenContainer';
@@ -96,12 +96,27 @@ export default function HomeScreen({ navigation }) {
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
   const [favorites, setFavorites] = useState({});
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchCategories();
-      if (user) fetchBookings({ customerId: user.id });
-    }, [user])
-  );
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    // Concurrent parallel fetch on mount
+    Promise.all([
+      fetchCategories(),
+      user ? fetchBookings({ customerId: user.id }) : Promise.resolve([])
+    ]).catch(() => {});
+  }, [user]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        fetchCategories(true),
+        user ? fetchBookings({ customerId: user.id }, true) : Promise.resolve([])
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user]);
 
   const activeFilterCount = countActiveFilters(appliedFilters);
 
@@ -109,47 +124,49 @@ export default function HomeScreen({ navigation }) {
     setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Filter Pipeline
-  const filteredCategories = categories.filter((c) => {
-    const q = search.trim().toLowerCase();
-    if (q) {
-      const matchCat = c.name.toLowerCase().includes(q);
-      const matchService = c.subcategories?.some(sub => sub.services?.some(s => s.name.toLowerCase().includes(q)));
-      if (!matchCat && !matchService) return false;
-    }
+  // Filter Pipeline (Memoized)
+  const sortedCategories = React.useMemo(() => {
+    const filtered = categories.filter((c) => {
+      const q = search.trim().toLowerCase();
+      if (q) {
+        const matchCat = c.name.toLowerCase().includes(q);
+        const matchService = c.subcategories?.some(sub => sub.services?.some(s => s.name.toLowerCase().includes(q)));
+        if (!matchCat && !matchService) return false;
+      }
 
-    if (appliedFilters.selectedCatIds && appliedFilters.selectedCatIds.length > 0) {
-      if (!appliedFilters.selectedCatIds.includes(c.id)) return false;
-    }
+      if (appliedFilters.selectedCatIds && appliedFilters.selectedCatIds.length > 0) {
+        if (!appliedFilters.selectedCatIds.includes(c.id)) return false;
+      }
 
-    const catPrice = Number(c.price || 20);
-    if (appliedFilters.minPrice !== '' && appliedFilters.minPrice !== undefined) {
-      if (catPrice < Number(appliedFilters.minPrice)) return false;
-    }
-    if (appliedFilters.maxPrice !== '' && appliedFilters.maxPrice !== undefined) {
-      if (catPrice > Number(appliedFilters.maxPrice)) return false;
-    }
+      const catPrice = Number(c.price || 20);
+      if (appliedFilters.minPrice !== '' && appliedFilters.minPrice !== undefined) {
+        if (catPrice < Number(appliedFilters.minPrice)) return false;
+      }
+      if (appliedFilters.maxPrice !== '' && appliedFilters.maxPrice !== undefined) {
+        if (catPrice > Number(appliedFilters.maxPrice)) return false;
+      }
 
-    const catRating = Number(c.rating || 4.8);
-    if (appliedFilters.minRating && appliedFilters.minRating > 0) {
-      if (catRating < appliedFilters.minRating) return false;
-    }
+      const catRating = Number(c.rating || 4.8);
+      if (appliedFilters.minRating && appliedFilters.minRating > 0) {
+        if (catRating < appliedFilters.minRating) return false;
+      }
 
-    return true;
-  });
+      return true;
+    });
 
-  const sortedCategories = [...filteredCategories].sort((a, b) => {
-    if (appliedFilters.sortBy === 'price_asc') {
-      return (Number(a.price) || 0) - (Number(b.price) || 0);
-    }
-    if (appliedFilters.sortBy === 'price_desc') {
-      return (Number(b.price) || 0) - (Number(a.price) || 0);
-    }
-    if (appliedFilters.sortBy === 'rating_desc') {
-      return (Number(b.rating) || 4.8) - (Number(a.rating) || 4.8);
-    }
-    return 0;
-  });
+    return [...filtered].sort((a, b) => {
+      if (appliedFilters.sortBy === 'price_asc') {
+        return (Number(a.price) || 0) - (Number(b.price) || 0);
+      }
+      if (appliedFilters.sortBy === 'price_desc') {
+        return (Number(b.price) || 0) - (Number(a.price) || 0);
+      }
+      if (appliedFilters.sortBy === 'rating_desc') {
+        return (Number(b.rating) || 4.8) - (Number(a.rating) || 4.8);
+      }
+      return 0;
+    });
+  }, [categories, search, appliedFilters]);
 
   // Extract individual bookable services for Popular Services section
   const allServicesList = [];
@@ -222,7 +239,18 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.screenBg}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#15803D']}
+            tintColor="#15803D"
+          />
+        }
+      >
         {/* 1. Header & Integrated Search Bar Block (Forest Green Theme) */}
         <View style={styles.topForestHeader}>
           {/* Header Row */}

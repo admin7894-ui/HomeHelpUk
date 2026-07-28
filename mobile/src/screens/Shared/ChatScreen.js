@@ -79,41 +79,36 @@ export default function ChatScreen({ route, navigation }) {
   useEffect(() => {
     loadMessages();
     markAsRead(bookingId);
-    let intervalId = null;
 
-    const startPolling = () => {
-      if (!intervalId) {
-        intervalId = setInterval(() => {
-          if (appStateRef.current === 'active') {
-            loadMessages();
-          }
-        }, 12000);
-      }
-    };
+    const { getSocket } = require('../../services/socket');
+    const socket = getSocket();
 
-    const stopPolling = () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    };
+    if (socket) {
+      const handleIncomingMessage = (data) => {
+        if (data.message && (data.conversation?.bookingId === bookingId || data.message.conversationId)) {
+          console.log('[Real-Time Chat Message Received]', data.message);
+          setMessages((prev) => {
+            const exists = prev.some((m) => m.id === data.message.id);
+            if (exists) return prev;
+            const newMsg = {
+              id: data.message.id,
+              from: data.message.senderId === user.id ? 'me' : 'them',
+              text: data.message.text,
+              time: new Date(data.message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              read: data.message.read,
+            };
+            return [...prev, newMsg];
+          });
+          markAsRead(bookingId);
+        }
+      };
 
-    startPolling();
+      socket.on('chat:message_sent', handleIncomingMessage);
 
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
-        loadMessages();
-        startPolling();
-      } else if (nextAppState.match(/inactive|background/)) {
-        stopPolling();
-      }
-      appStateRef.current = nextAppState;
-    });
-
-    return () => {
-      stopPolling();
-      subscription.remove();
-    };
+      return () => {
+        socket.off('chat:message_sent', handleIncomingMessage);
+      };
+    }
   }, [bookingId]);
 
   const send = async () => {

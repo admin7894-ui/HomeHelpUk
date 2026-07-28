@@ -101,3 +101,24 @@ exports.toggleFavourite = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to toggle favourite provider' });
   }
 };
+
+exports.savePushToken = async (req, res) => {
+  try {
+    const { pushToken, platform, deviceId } = req.body;
+    if (!pushToken) {
+      return res.status(400).json({ success: false, message: 'Push token is required' });
+    }
+
+    const { registerPushToken } = require('../utils/pushNotifications');
+    const success = await registerPushToken(req.user.id, pushToken, platform || 'android', deviceId);
+
+    if (success) {
+      res.json({ success: true, message: 'Push token registered successfully' });
+    } else {
+      res.status(400).json({ success: false, message: 'Invalid or failed push token registration' });
+    }
+  } catch (err) {
+    console.error('[Profile savePushToken Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to save push token' });
+  }
+};

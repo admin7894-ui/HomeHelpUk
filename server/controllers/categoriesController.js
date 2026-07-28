@@ -95,9 +95,81 @@ function findCanonicalServiceInHierarchy(categories, serviceId) {
   return { service: null, mainCategory: null, subCategory: null };
 }
 
+// Memory Cache for Categories Hierarchy
+let categoriesCache = { full: null, summary: null, timestamp: 0 };
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function invalidateCategoriesCache() {
+  categoriesCache = { full: null, summary: null, timestamp: 0 };
+}
+exports.invalidateCategoriesCache = invalidateCategoriesCache;
+
+async function fetchCategoriesSummaryHierarchy() {
+  const catRes = await db.query('SELECT id, name, icon, image_url, price, unit, description, is_visible, order_index FROM categories WHERE is_visible = true ORDER BY order_index ASC, name ASC');
+  const subRes = await db.query('SELECT id, name, category_id FROM subcategories ORDER BY name ASC');
+  const srvRes = await db.query('SELECT id, name, category_id, subcategory_id, price, unit FROM services WHERE is_active = true AND is_visible = true ORDER BY order_index ASC, name ASC');
+
+  return catRes.rows.map(cat => {
+    const subcats = subRes.rows
+      .filter(sub => sub.category_id === cat.id)
+      .map(sub => {
+        const services = srvRes.rows
+          .filter(srv => srv.subcategory_id === sub.id || srv.category_id === cat.id)
+          .map(srv => ({
+            id: srv.id,
+            name: srv.name,
+            categoryId: srv.category_id || cat.id,
+            price: Number(srv.price),
+            unit: srv.unit
+          }));
+        return {
+          id: sub.id,
+          name: sub.name,
+          services
+        };
+      })
+      .filter(sub => sub.services.length > 0);
+
+    return {
+      id: cat.id,
+      name: cat.name,
+      icon: cat.icon,
+      imageUrl: cat.image_url || '',
+      price: Number(cat.price),
+      unit: cat.unit,
+      description: cat.description,
+      orderIndex: cat.order_index,
+      isVisible: true,
+      subcategories: subcats
+    };
+  }).filter(cat => cat.subcategories.length > 0);
+}
+
 exports.getAll = async (req, res) => {
   try {
-    const categories = await fetchFullCategoriesHierarchy();
+    const isSummary = req.query.summary === 'true';
+    const now = Date.now();
+
+    if (isSummary && categoriesCache.summary && (now - categoriesCache.timestamp < CACHE_TTL_MS)) {
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      return res.json({ success: true, categories: categoriesCache.summary, cached: true });
+    }
+
+    if (!isSummary && categoriesCache.full && (now - categoriesCache.timestamp < CACHE_TTL_MS)) {
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      return res.json({ success: true, categories: categoriesCache.full, cached: true });
+    }
+
+    const categories = isSummary ? await fetchCategoriesSummaryHierarchy() : await fetchFullCategoriesHierarchy();
+    
+    if (isSummary) {
+      categoriesCache.summary = categories;
+    } else {
+      categoriesCache.full = categories;
+    }
+    categoriesCache.timestamp = now;
+
+    res.setHeader('Cache-Control', 'public, max-age=300');
     res.json({ success: true, categories });
   } catch (err) {
     console.error('[Categories getAll Error]', err);

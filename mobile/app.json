@@ -18,13 +18,18 @@
         "ITSAppUsesNonExemptEncryption": false
       }
     },
+    "icon": "./assets/icon.png",
+    "jsEngine": "hermes",
     "android": {
       "package": "com.homehelpuk.poc",
       "permissions": [
-        "INTERNET"
+        "INTERNET",
+        "RECEIVE_BOOT_COMPLETED",
+        "POST_NOTIFICATIONS"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#FFF8EF"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#E0F2FE"
       }
     },
     "web": {
@@ -32,6 +37,14 @@
     },
     "plugins": [
       "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#0284C7",
+          "sounds": []
+        }
+      ],
       [
         "expo-build-properties",
         {

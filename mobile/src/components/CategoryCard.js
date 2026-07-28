@@ -5,7 +5,7 @@ import { getCategoryImage } from '../utils/categoryImages';
 import { getTheme, radii } from '../utils/theme';
 import { useAppStore } from '../store/appStore';
 
-export default function CategoryCard({ item, onPress, style }) {
+export default React.memo(function CategoryCard({ item, onPress, style }) {
   const { highContrast } = useAppStore();
   const theme = getTheme(highContrast);
 
@@ -59,7 +59,7 @@ export default function CategoryCard({ item, onPress, style }) {
       </View>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   cardContainer: {

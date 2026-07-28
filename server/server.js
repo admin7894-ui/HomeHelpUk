@@ -13,9 +13,12 @@ const walletRoutes = require('./routes/wallet');
 const chatsRoutes = require('./routes/chats');
 const adminRoutes = require('./routes/admin');
 const path = require('path');
+const compression = require('compression');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+app.use(compression());
 
 const allowedOrigins = [
   process.env.ADMIN_PANEL_URL,
@@ -78,7 +81,10 @@ app.use('/api/provider/wallet', walletRoutes);
 app.use('/api/chats', chatsRoutes);
 
 // 404 handler
-app.use((req, res) => {
+app.use((req, res, next) => {
+  if (req.path.startsWith('/socket.io')) {
+    return next();
+  }
   const logDetails = {
     timestamp: new Date().toISOString(),
     method: req.method,
@@ -113,6 +119,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`HomeHelpUK API running on http://0.0.0.0:${PORT}`);
+const http = require('http');
+const { initSocket } = require('./utils/socket');
+
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`HomeHelpUK API (with Socket.IO) running on http://0.0.0.0:${PORT}`);
 });

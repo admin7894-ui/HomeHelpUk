@@ -246,3 +246,17 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 
 CREATE INDEX IF NOT EXISTS idx_reviews_provider ON reviews(provider_id);
+
+-- 17. USER PUSH TOKENS TABLE
+CREATE TABLE IF NOT EXISTS user_push_tokens (
+  id VARCHAR(60) PRIMARY KEY,
+  user_id VARCHAR(60) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  push_token VARCHAR(255) UNIQUE NOT NULL,
+  platform VARCHAR(20) DEFAULT 'android',
+  device_id VARCHAR(100),
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_tokens_user ON user_push_tokens(user_id, is_active);
