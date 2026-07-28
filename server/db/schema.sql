@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS services (
   unit VARCHAR(50) DEFAULT 'visit',
   duration VARCHAR(100),
   description TEXT,
+  short_description TEXT,
   base_includes TEXT,
   additional_charge NUMERIC(10,2) DEFAULT 0,
   max_quantity INT DEFAULT 1,

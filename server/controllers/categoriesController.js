@@ -34,6 +34,7 @@ async function fetchFullCategoriesHierarchy() {
             unit: srv.unit,
             duration: srv.duration,
             description: srv.description,
+            shortDescription: srv.short_description || srv.description || '',
             imageUrl: srv.image_url || '',
             galleryImages: srv.gallery_images || [],
             ukTypicalPrice: srv.uk_typical_price,
@@ -107,7 +108,7 @@ exports.invalidateCategoriesCache = invalidateCategoriesCache;
 async function fetchCategoriesSummaryHierarchy() {
   const catRes = await db.query('SELECT id, name, icon, image_url, price, unit, description, is_visible, order_index FROM categories WHERE is_visible = true ORDER BY order_index ASC, name ASC');
   const subRes = await db.query('SELECT id, name, category_id FROM subcategories ORDER BY name ASC');
-  const srvRes = await db.query('SELECT id, name, category_id, subcategory_id, price, unit FROM services WHERE is_active = true AND is_visible = true ORDER BY order_index ASC, name ASC');
+  const srvRes = await db.query('SELECT id, name, category_id, subcategory_id, price, unit, description, short_description, duration FROM services WHERE is_active = true AND is_visible = true ORDER BY order_index ASC, name ASC');
 
   return catRes.rows.map(cat => {
     const subcats = subRes.rows
@@ -120,7 +121,10 @@ async function fetchCategoriesSummaryHierarchy() {
             name: srv.name,
             categoryId: srv.category_id || cat.id,
             price: Number(srv.price),
-            unit: srv.unit
+            unit: srv.unit,
+            duration: srv.duration,
+            description: srv.description || '',
+            shortDescription: srv.short_description || srv.description || ''
           }));
         return {
           id: sub.id,

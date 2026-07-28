@@ -77,7 +77,15 @@ export default function CategoryDetailScreen({ route, navigation }) {
                 numberOfLines={2}
                 style={[styles.serviceDesc, { color: theme.textMuted, fontSize: scaledFont(13, fontScale) }]}
               >
-                {srv.description}
+                {srv.shortDescription || srv.description || (
+                  srv.name.toLowerCase().includes('lawn') ? 'Mowing, edging, and lawn maintenance for tidy gardens.' :
+                  srv.name.toLowerCase().includes('hedge') ? 'Trimming, shaping, and pruning of garden hedges.' :
+                  srv.name.toLowerCase().includes('garden') ? 'General garden clearance, weeding, and maintenance.' :
+                  srv.name.toLowerCase().includes('chef') ? 'Custom meal prep, gourmet cooking, and kitchen service.' :
+                  srv.name.toLowerCase().includes('meal') ? 'Nutritious meal preparation tailored to your family.' :
+                  srv.name.toLowerCase().includes('clean') ? 'Professional home cleaning for spotless living spaces.' :
+                  `${srv.name} provided by verified local professionals.`
+                )}
               </Text>
               
               <View style={styles.detailsMeta}>

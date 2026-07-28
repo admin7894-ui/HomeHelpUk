@@ -220,15 +220,144 @@ export default function ServiceDetailScreen({ route, navigation }) {
     );
   }
 
-  const whatsIncludedList = Array.isArray(service.includedItems) && service.includedItems.length > 0
+  const getDefaultInclusions = () => {
+    if (isCookingService) {
+      return [
+        'Custom meal preparation according to your dietary preferences',
+        'Ingredient preparation, chopping, and marination',
+        'Cooking, plating, or storage in containers',
+        'Kitchen workstation cleaning and counter wipe-down'
+      ];
+    }
+    if (isMovingService) {
+      return [
+        'Professional loading and securing of items',
+        'Careful transport between pickup and destination',
+        'Unloading and placement into designated rooms',
+        'Basic furniture protection and wrapping'
+      ];
+    }
+    const catId = (mainCategory?.id || service?.categoryId || '').toLowerCase();
+    const srvName = (service?.name || '').toLowerCase();
+
+    if (catId.includes('clean') || srvName.includes('clean')) {
+      return [
+        'Dusting and wiping of reachable surfaces, tables & shelves',
+        'Vacuuming carpets and mopping hard floor surfaces',
+        'Sanitizing sink, countertops, stovetop, and mirror surfaces',
+        'Emptying waste bins and replacing trash liners'
+      ];
+    }
+    if (catId.includes('handyman') || catId.includes('repair') || srvName.includes('install') || srvName.includes('assembly')) {
+      return [
+        'Professional execution using standard tools and fittings',
+        'Precise alignment, leveling, and secure mounting/assembly',
+        'Initial assessment and safety check of target area',
+        'Tidy-up of work area and packaging disposal'
+      ];
+    }
+    if (catId.includes('plumb') || srvName.includes('plumb') || srvName.includes('tap') || srvName.includes('leak')) {
+      return [
+        'Initial diagnostic inspection and leak/pipe check',
+        'Standard fitting replacement or repair execution',
+        'System pressure testing after repair',
+        'Clean-up of immediate work zone'
+      ];
+    }
+    if (catId.includes('garden') || srvName.includes('lawn') || srvName.includes('garden')) {
+      return [
+        'Lawn mowing, edging, or garden bed weeding',
+        'Trimming of overgrown grass and hedges',
+        'Bagging of green garden waste'
+      ];
+    }
+    return [
+      'Professional execution of requested service by verified specialist',
+      'All standard labor and equipment included',
+      'Quality check upon service completion'
+    ];
+  };
+
+  const getDefaultExclusions = () => {
+    if (isCookingService) {
+      return [
+        'Cost of groceries and raw ingredients (unless pre-arranged add-on selected)',
+        'Specialist commercial kitchen equipment',
+        'Deep cleaning of oven or exhaust hood'
+      ];
+    }
+    if (isMovingService) {
+      return [
+        'Hazardous, toxic, or illegal materials transport',
+        'Fixing items to walls at new location',
+        'Congestion charge / parking fees (payable separately if applicable)'
+      ];
+    }
+    const catId = (mainCategory?.id || service?.categoryId || '').toLowerCase();
+    if (catId.includes('clean')) {
+      return [
+        'Exterior window cleaning above ground floor',
+        'Heavy industrial stain or mold removal',
+        'Biohazard or hazardous material cleanup'
+      ];
+    }
+    if (catId.includes('handyman') || catId.includes('plumb')) {
+      return [
+        'Cost of new replacement parts/materials (unless provided)',
+        'Major structural wall or foundation modifications',
+        'High-voltage mains rewiring or gas pipe work'
+      ];
+    }
+    return [
+      'Specialist materials or replacement parts not specified',
+      'Hazardous material handling or structural alterations'
+    ];
+  };
+
+  const rawIncluded = Array.isArray(service.includedItems) && service.includedItems.length > 0
     ? service.includedItems
-    : (Array.isArray(service.whatsIncluded) && service.whatsIncluded.length > 0 ? service.whatsIncluded : (service.baseIncludes ? [service.baseIncludes] : ['Professional execution of requested service']));
+    : (Array.isArray(service.whatsIncluded) && service.whatsIncluded.length > 0 ? service.whatsIncluded : (service.baseIncludes ? [service.baseIncludes] : []));
 
-  const whatsNotIncludedList = Array.isArray(service.notIncludedItems) && service.notIncludedItems.length > 0
+  const whatsIncludedList = rawIncluded.length > 0 ? rawIncluded : getDefaultInclusions();
+
+  const rawNotIncluded = Array.isArray(service.notIncludedItems) && service.notIncludedItems.length > 0
     ? service.notIncludedItems
-    : (Array.isArray(service.whatsNotIncluded) ? service.whatsNotIncluded : []);
+    : (Array.isArray(service.whatsNotIncluded) && service.whatsNotIncluded.length > 0 ? service.whatsNotIncluded : []);
 
-  const faqsList = Array.isArray(service.faqs) ? service.faqs : [];
+  const whatsNotIncludedList = rawNotIncluded.length > 0 ? rawNotIncluded : getDefaultExclusions();
+
+  const getDefaultFaqs = () => {
+    if (isCookingService) {
+      return [
+        { q: 'Who provides the groceries and ingredients?', a: 'You can provide your own groceries according to your menu preferences, or select our Grocery Purchasing add-on for the chef to acquire ingredients before arrival.' },
+        { q: 'How long before my event or meal should I book?', a: 'We recommend booking at least 24 hours in advance to allow proper meal planning and dietary preference confirmation.' },
+        { q: 'Can the chef accommodate specific dietary restrictions or allergies?', a: 'Yes! All our private chefs can customize recipes for vegan, keto, halal, gluten-free, or specific allergy requirements.' }
+      ];
+    }
+    if (isMovingService) {
+      return [
+        { q: 'Is my furniture protected during transport?', a: 'Yes, our removal team uses transit blankets and securing straps to ensure your furniture arrives safely.' },
+        { q: 'What happens if I need extra time or helpers?', a: 'You can easily adjust the move size, vehicle selection, or add-on assistance options directly within the app before booking.' },
+        { q: 'Do you charge extra for stairs or parking?', a: 'Standard loading/unloading is included. Any congestion charges or parking fees incurred during transport are settled directly.' }
+      ];
+    }
+    const catId = (mainCategory?.id || service?.categoryId || '').toLowerCase();
+    if (catId.includes('clean')) {
+      return [
+        { q: 'Do I need to supply cleaning products and equipment?', a: 'Standard cleaning supplies are included by default. If you have specific preferred products, our professionals are happy to use them.' },
+        { q: 'Do I need to be home during the service?', a: 'No, as long as key access or entry instructions are provided in advance, you do not need to be present.' },
+        { q: 'What is your satisfaction guarantee?', a: 'If any area within the agreed service scope is missed, inform us within 24 hours and we will arrange a complimentary touch-up.' }
+      ];
+    }
+    return [
+      { q: 'How are service providers verified?', a: 'All home help professionals undergo identity checks, background screening, and skill verification before taking jobs.' },
+      { q: 'Can I cancel or reschedule my booking?', a: 'Yes, free cancellation and flexible rescheduling are available up to 24 hours before your scheduled booking start time.' },
+      { q: 'How does payment work?', a: 'Payments are held securely in escrow and released to the provider only after the job is completed to your satisfaction.' }
+    ];
+  };
+
+  const rawFaqs = Array.isArray(service.faqs) && service.faqs.length > 0 ? service.faqs : [];
+  const faqsList = rawFaqs.length > 0 ? rawFaqs : getDefaultFaqs();
 
   const getReferencedService = (targetId) => {
     if (!targetId) return null;
@@ -830,7 +959,8 @@ export default function ServiceDetailScreen({ route, navigation }) {
                 <Text style={styles.infoSectionHeading}>About Service</Text>
                 <Text style={styles.serviceDescText}>
                   {service.description ||
-                    'Our professional home service removes dirt, grime, and germs from every room, leaving your home spotless, fresh, and comfortable.'}
+                    service.shortDescription ||
+                    `${service.name} provided by top-rated, background-checked local professionals.`}
                 </Text>
               </View>
 
