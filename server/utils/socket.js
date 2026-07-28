@@ -19,23 +19,28 @@ function initSocket(server) {
   // JWT Middleware for Socket Authentication
   io.use((socket, next) => {
     let token = socket.handshake.auth?.token || socket.handshake.headers?.authorization;
-    if (token && token.startsWith('Bearer ')) {
+    if (token && typeof token === 'string' && token.startsWith('Bearer ')) {
       token = token.slice(7);
     }
     
     if (!token) {
-      // Allow unauthenticated connection fallback if token missing, but assign unauth room
+      console.log(`[Socket Auth Warning] Missing auth token from Socket ID: ${socket.id}`);
       socket.user = null;
       return next();
     }
 
     try {
       const decoded = verifyToken(token);
+      if (!decoded) {
+        console.warn(`[Socket Auth Warning] Token verification failed for Socket ID: ${socket.id}`);
+        socket.user = null;
+        return next();
+      }
       socket.user = decoded;
+      console.log(`[Socket Authenticated] User: ${decoded.id} (${decoded.role}) | Socket ID: ${socket.id}`);
       return next();
     } catch (err) {
-      console.warn('[Socket Auth Error]', err.message);
-      // Proceed without user payload if token invalid, instead of crashing connection
+      console.warn(`[Socket Auth Error] ${err.message} | Socket ID: ${socket.id}`);
       socket.user = null;
       return next();
     }

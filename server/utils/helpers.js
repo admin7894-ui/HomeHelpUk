@@ -76,4 +76,4 @@ function hasTimeOverlap(bookingA, bookingB) {
   return (startA < endB) && (startB < endA);
 }
 
-module.exports = { generateId, generateFakeToken, decodeFakeToken, findCategoryOrService, parseTime, hasTimeOverlap };
+module.exports = { generateId, generateFakeToken, decodeFakeToken, verifyToken: decodeFakeToken, findCategoryOrService, parseTime, hasTimeOverlap };
