@@ -35,14 +35,14 @@ function AppContent({ navigationRef }) {
         .catch(() => {});
     }
 
-    if (token) {
+    if (isHydrated && token) {
       connectSocket();
       registerForPushNotificationsAsync();
       const cleanupListeners = setupNotificationListeners(navigationRef);
       return () => {
         if (cleanupListeners) cleanupListeners();
       };
-    } else {
+    } else if (isHydrated && !token) {
       disconnectSocket();
     }
   }, [isHydrated, token, user]);
