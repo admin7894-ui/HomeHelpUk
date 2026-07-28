@@ -105,6 +105,7 @@ exports.toggleFavourite = async (req, res) => {
 exports.savePushToken = async (req, res) => {
   try {
     const { pushToken, platform, deviceId } = req.body;
+    console.log(`[Push Token Registration Request] User ID: ${req.user ? req.user.id : 'UNAUTH'} | Token Received: ${Boolean(pushToken)}`);
     if (!pushToken) {
       return res.status(400).json({ success: false, message: 'Push token is required' });
     }
@@ -113,8 +114,10 @@ exports.savePushToken = async (req, res) => {
     const success = await registerPushToken(req.user.id, pushToken, platform || 'android', deviceId);
 
     if (success) {
+      console.log(`[Push Token Registration Success] Token stored for User ID: ${req.user.id}`);
       res.json({ success: true, message: 'Push token registered successfully' });
     } else {
+      console.warn(`[Push Token Registration Failed] Invalid token for User ID: ${req.user.id}`);
       res.status(400).json({ success: false, message: 'Invalid or failed push token registration' });
     }
   } catch (err) {
