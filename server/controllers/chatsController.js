@@ -81,66 +81,77 @@ exports.getChats = async (req, res) => {
       pId = pRes.rows[0] ? pRes.rows[0].id : null;
     }
 
-    let convQuery = `SELECT * FROM conversations WHERE 1=1`;
-    const params = [];
+    let sql = `
+      SELECT 
+        c.id as conversation_id,
+        c.booking_id as "bookingId",
+        c.customer_id as "customerId",
+        c.provider_id as "providerId",
+        c.category_id as "categoryId",
+        c.service_name as "serviceName",
+        c.booking_date as "bookingDate",
+        c.booking_time as "bookingTime",
+        c.hidden_for,
+        cust.name as "customerName",
+        prov_u.name as "providerName",
+        lm.text as "lastMessage",
+        lm.timestamp as "lastMessageTime",
+        COALESCE(un.unread_count, 0)::int as "unreadCount"
+      FROM conversations c
+      JOIN users cust ON c.customer_id = cust.id
+      LEFT JOIN providers p ON c.provider_id = p.id
+      LEFT JOIN users prov_u ON p.user_id = prov_u.id
+      LEFT JOIN LATERAL (
+        SELECT text, timestamp
+        FROM messages
+        WHERE conversation_id = c.id
+        ORDER BY timestamp DESC
+        LIMIT 1
+      ) lm ON true
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*) as unread_count
+        FROM messages
+        WHERE conversation_id = c.id AND sender_id != $1 AND read = false
+      ) un ON true
+      WHERE 1=1
+    `;
 
+    const params = [req.user.id];
     if (isCustomer) {
       params.push(req.user.id);
-      convQuery += ` AND customer_id = $${params.length}`;
+      sql += ` AND c.customer_id = $${params.length}`;
     } else {
       if (!pId) return res.json({ success: true, conversations: [], unreadTotal: 0 });
       params.push(pId);
-      convQuery += ` AND provider_id = $${params.length}`;
+      sql += ` AND c.provider_id = $${params.length}`;
     }
 
-    const convRes = await db.query(convQuery, params);
-    let myChats = convRes.rows.filter(c => {
-      const hiddenFor = c.hidden_for || [];
-      return !hiddenFor.includes(req.user.id);
-    });
+    sql += ` ORDER BY lm.timestamp DESC NULLS LAST`;
 
-    let unreadTotal = 0;
+    const convRes = await db.query(sql, params);
     const conversations = [];
+    let unreadTotal = 0;
 
-    for (const chat of myChats) {
-      const formatted = await getFormattedChat(chat.id);
-      if (!formatted) continue;
+    for (const row of convRes.rows) {
+      const hiddenFor = row.hidden_for || [];
+      if (hiddenFor.includes(req.user.id)) continue;
 
-      let unreadCount = 0;
-      let lastMessage = null;
-      let lastMessageTime = null;
-
-      if (formatted.messages && formatted.messages.length > 0) {
-        const lastMsg = formatted.messages[formatted.messages.length - 1];
-        lastMessage = lastMsg.text;
-        lastMessageTime = lastMsg.timestamp;
-
-        unreadCount = formatted.messages.filter(m => m.senderId !== req.user.id && !m.read).length;
-        unreadTotal += unreadCount;
-      }
+      const unreadCount = Number(row.unreadCount) || 0;
+      unreadTotal += unreadCount;
 
       conversations.push({
-        bookingId: formatted.bookingId,
-        contactName: isCustomer ? formatted.providerName : formatted.customerName,
+        bookingId: row.bookingId,
+        contactName: isCustomer ? (row.providerName || 'Provider') : (row.customerName || 'Customer'),
         contactAvatar: null,
-        categoryId: formatted.categoryId,
-        serviceName: formatted.serviceName,
-        bookingDate: formatted.bookingDate,
-        bookingTime: formatted.bookingTime,
-        lastMessage,
-        lastMessageTime,
+        categoryId: row.categoryId,
+        serviceName: row.serviceName,
+        bookingDate: row.bookingDate ? new Date(row.bookingDate).toISOString().split('T')[0] : row.bookingDate,
+        bookingTime: row.bookingTime,
+        lastMessage: row.lastMessage || null,
+        lastMessageTime: row.lastMessageTime ? new Date(row.lastMessageTime).toISOString() : null,
         unreadCount
       });
     }
-
-    conversations.sort((a, b) => {
-      if (a.lastMessageTime && b.lastMessageTime) {
-        return new Date(b.lastMessageTime) - new Date(a.lastMessageTime);
-      }
-      if (a.lastMessageTime) return -1;
-      if (b.lastMessageTime) return 1;
-      return 0;
-    });
 
     res.json({ success: true, conversations, unreadTotal });
   } catch (err) {

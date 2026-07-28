@@ -4,7 +4,8 @@ import api from './api';
 import Constants from 'expo-constants';
 
 let Notifications = null;
-const isExpoGo = Constants.executionEnvironment === Constants.ExecutionEnvironment.StoreClient || Constants.appOwnership === 'expo';
+const execEnv = Constants.executionEnvironment || Constants.expoConfig?.executionEnvironment;
+const isExpoGo = execEnv === 'storeClient' || Constants.appOwnership === 'expo';
 
 if (!isExpoGo) {
   try {

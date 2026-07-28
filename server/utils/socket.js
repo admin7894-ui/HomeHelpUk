@@ -37,7 +37,7 @@ function initSocket(server) {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     const user = socket.user;
     if (user) {
       console.log(`[Socket Connected] User: ${user.id} (${user.role}) | Socket ID: ${socket.id}`);
@@ -45,9 +45,23 @@ function initSocket(server) {
       // Join user-specific room
       socket.join(`user_${user.id}`);
 
-      if (user.role === 'provider' && user.providerId) {
-        socket.join(`provider_${user.providerId}`);
-        console.log(`[Socket Joined Room] provider_${user.providerId}`);
+      if (user.role === 'provider') {
+        let pId = user.providerId;
+        if (!pId) {
+          try {
+            const db = require('../db');
+            const pRes = await db.query('SELECT id FROM providers WHERE user_id = $1', [user.id]);
+            if (pRes.rows.length > 0) {
+              pId = pRes.rows[0].id;
+            }
+          } catch (pErr) {
+            console.error('[Socket DB Provider Resolve Error]', pErr.message);
+          }
+        }
+        if (pId) {
+          socket.join(`provider_${pId}`);
+          console.log(`[Socket Joined Room] provider_${pId} for User: ${user.id}`);
+        }
       }
 
       if (user.role === 'admin') {
@@ -271,6 +285,18 @@ function emitMessageSent(message, conversation) {
 
   io.to(`user_${conversation.customerId}`).emit('chat:message_sent', payload);
   io.to(`provider_${conversation.providerId}`).emit('chat:message_sent', payload);
+
+  // Also emit to provider user room for maximum reliability
+  try {
+    const db = require('../db');
+    db.query('SELECT user_id FROM providers WHERE id = $1', [conversation.providerId]).then(pRes => {
+      if (pRes.rows.length > 0) {
+        const provUserId = pRes.rows[0].user_id;
+        io.to(`user_${provUserId}`).emit('chat:message_sent', payload);
+      }
+    });
+  } catch (err) {}
+
   console.log(`[Socket Broadcast] chat:message_sent emitted for message ${message.id}`);
 
   // Push Notification to Recipient
