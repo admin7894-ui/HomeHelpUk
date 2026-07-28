@@ -85,17 +85,25 @@ export default function ChatScreen({ route, navigation }) {
 
     if (socket) {
       const handleIncomingMessage = (data) => {
-        if (data.message && (data.conversation?.bookingId === bookingId || data.message.conversationId)) {
+        if (!data || !data.message) return;
+        const msgConvId = String(data.message.conversationId || data.conversation?.id || '');
+        const msgBookingId = String(data.message.bookingId || data.conversation?.bookingId || '');
+        const currentBookingId = String(bookingId || '');
+
+        const isMatch = (currentBookingId && msgBookingId === currentBookingId) || 
+                        (msgConvId && msgConvId === String(data.conversation?.id));
+
+        if (isMatch) {
           console.log('[Real-Time Chat Message Received]', data.message);
           setMessages((prev) => {
-            const exists = prev.some((m) => m.id === data.message.id);
+            const exists = prev.some((m) => String(m.id) === String(data.message.id));
             if (exists) return prev;
             const newMsg = {
               id: data.message.id,
-              from: data.message.senderId === user.id ? 'me' : 'them',
+              from: String(data.message.senderId) === String(user.id) ? 'me' : 'them',
               text: data.message.text,
-              time: new Date(data.message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              read: data.message.read,
+              time: new Date(data.message.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              read: Boolean(data.message.read),
             };
             return [...prev, newMsg];
           });
