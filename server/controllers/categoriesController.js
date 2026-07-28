@@ -177,7 +177,7 @@ exports.getAll = async (req, res) => {
     res.json({ success: true, categories });
   } catch (err) {
     console.error('[Categories getAll Error]', err);
-    res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    res.status(500).json({ success: false, message: 'Failed to fetch categories', error: err.message });
   }
 };
 
