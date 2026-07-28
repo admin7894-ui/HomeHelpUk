@@ -44,14 +44,19 @@ async function sendPushNotification(userId, title, body, data = {}, categoryId =
       [userId]
     );
 
-    if (res.rows.length === 0) return;
+    console.log(`[Push Token Lookup] Target User ID: ${userId} | Tokens Found: ${res.rows.length}`);
+
+    if (res.rows.length === 0) {
+      console.warn(`[Push Dispatch Warning] No active push token stored for User ID: ${userId}`);
+      return;
+    }
 
     const pushTokens = res.rows.map(r => r.push_token);
     const messages = [];
 
     for (const pushToken of pushTokens) {
       if (!Expo.isExpoPushToken(pushToken)) {
-        console.warn(`[Push Warning] Invalid token for user ${userId}: ${pushToken}`);
+        console.warn(`[Push Warning] Invalid token for user ${userId}: ${pushToken.slice(0, 20)}...`);
         continue;
       }
 
@@ -63,7 +68,7 @@ async function sendPushNotification(userId, title, body, data = {}, categoryId =
         data: { ...data, userId },
         categoryId,
         priority: 'high',
-        channelId: data.channelId || 'booking-updates',
+        channelId: data.channelId || 'chat-messages',
       });
     }
 
@@ -74,8 +79,10 @@ async function sendPushNotification(userId, title, body, data = {}, categoryId =
       try {
         const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
         ticketChunk.forEach((ticket, idx) => {
-          if (ticket.status === 'error') {
-            console.error(`[Push Ticket Error] ${ticket.message}`);
+          if (ticket.status === 'ok') {
+            console.log(`[Push Ticket Success] User: ${userId} | Ticket ID: ${ticket.id}`);
+          } else if (ticket.status === 'error') {
+            console.error(`[Push Ticket Error] User: ${userId} | Message: ${ticket.message} | Code: ${ticket.details?.error}`);
             if (ticket.details && ticket.details.error === 'DeviceNotRegistered') {
               deactivatePushToken(chunk[idx].to);
             }
