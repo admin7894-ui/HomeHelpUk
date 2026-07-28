@@ -4,7 +4,9 @@ import api from './api';
 import Constants from 'expo-constants';
 
 let Notifications = null;
-if (Constants.appOwnership !== 'expo') {
+const isExpoGo = Constants.executionEnvironment === Constants.ExecutionEnvironment.StoreClient || Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
   try {
     Notifications = require('expo-notifications');
     Notifications.setNotificationHandler({
@@ -14,7 +16,9 @@ if (Constants.appOwnership !== 'expo') {
         shouldSetBadge: true,
       }),
     });
-  } catch (e) {}
+  } catch (e) {
+    console.log('[Push Init Error]', e.message);
+  }
 }
 
 export const setupNotificationChannels = async () => {
@@ -50,8 +54,8 @@ export const setupNotificationChannels = async () => {
 };
 
 export const registerForPushNotificationsAsync = async () => {
-  if (Constants.appOwnership === 'expo') {
-    console.log('[Push] Skipping Expo Push Token generation in Expo Go sandbox (remote push requires Development / Standalone APK Build).');
+  if (isExpoGo) {
+    console.log('[PUSH] Skipping Expo Push Token generation in Expo Go sandbox (remote push requires Development / Standalone APK Build).');
     return null;
   }
 
