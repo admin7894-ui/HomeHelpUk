@@ -90,6 +90,18 @@ export const registerForPushNotificationsAsync = async () => {
 
     console.log(`[Push Registration] Token generated successfully: ${pushToken.slice(0, 25)}...`);
 
+    // Verify authenticated session token presence before making API call
+    const { useAuthStore } = require('../store/authStore');
+    const authToken = useAuthStore.getState().token;
+    const authUser = useAuthStore.getState().user;
+
+    if (!authToken) {
+      console.warn('[Push Registration Warning] Auth token missing in Zustand store. Registration postponed until session available.');
+      return pushToken;
+    }
+
+    console.log(`[Push Registration] Dispatching POST /profile/push-token for User ID: ${authUser?.id || 'UNKNOWN'}`);
+
     // Register token asynchronously with backend
     try {
       const res = await api.post('/profile/push-token', {
@@ -97,9 +109,13 @@ export const registerForPushNotificationsAsync = async () => {
         platform: Platform.OS,
         deviceId: Device.deviceName || `${Platform.OS}_${Date.now()}`
       });
-      console.log('[Push Registration] Backend registration response:', res.status, res.data?.message);
+      console.log('[Push Registration Success] HTTP Status:', res.status, '| Response:', JSON.stringify(res.data));
     } catch (err) {
-      console.log('[Push Registration Error] Backend API registration failed:', err.message);
+      console.error('[Push Registration Error] Backend API registration failed:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data
+      });
     }
 
     return pushToken;
