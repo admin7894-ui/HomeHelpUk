@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('./index');
 
 async function runAutoMigrations() {
   console.log('[DB Auto-Migration] Starting production database schema check...');
