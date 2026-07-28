@@ -121,10 +121,14 @@ app.use((err, req, res, next) => {
 
 const http = require('http');
 const { initSocket } = require('./utils/socket');
+const { runAutoMigrations } = require('./db/autoMigrate');
 
 const server = http.createServer(app);
 initSocket(server);
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`HomeHelpUK API (with Socket.IO) running on http://0.0.0.0:${PORT}`);
+// Run non-destructive database migrations on startup to keep database synced with API
+runAutoMigrations().then(() => {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`HomeHelpUK API (with Socket.IO) running on http://0.0.0.0:${PORT}`);
+  });
 });

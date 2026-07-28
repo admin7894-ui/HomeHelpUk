@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 
 let io = null;
 
-const JWT_SECRET = process.env.JWT_SECRET || 'homehelpuk_secret_key_poc_2026';
+const { verifyToken } = require('./helpers');
 
 function initSocket(server) {
   io = new Server(server, {
@@ -18,7 +18,11 @@ function initSocket(server) {
 
   // JWT Middleware for Socket Authentication
   io.use((socket, next) => {
-    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    let token = socket.handshake.auth?.token || socket.handshake.headers?.authorization;
+    if (token && token.startsWith('Bearer ')) {
+      token = token.slice(7);
+    }
+    
     if (!token) {
       // Allow unauthenticated connection fallback if token missing, but assign unauth room
       socket.user = null;
@@ -26,7 +30,7 @@ function initSocket(server) {
     }
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const decoded = verifyToken(token);
       socket.user = decoded;
       return next();
     } catch (err) {
