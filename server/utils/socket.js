@@ -281,20 +281,31 @@ function emitBookingCancelled(booking) {
 
 function emitMessageSent(message, conversation) {
   if (!io) return;
-  const payload = { message, conversation, timestamp: Date.now() };
+
+  const fullMessage = {
+    ...message,
+    conversationId: conversation.id,
+    bookingId: conversation.bookingId
+  };
+
+  const payload = { message: fullMessage, conversation, timestamp: Date.now() };
 
   io.to(`user_${conversation.customerId}`).emit('chat:message_sent', payload);
-  io.to(`provider_${conversation.providerId}`).emit('chat:message_sent', payload);
+  if (conversation.providerId) {
+    io.to(`provider_${conversation.providerId}`).emit('chat:message_sent', payload);
+  }
 
-  // Also emit to provider user room for maximum reliability
+  // Also emit directly to provider's authenticated user_id room
   try {
     const db = require('../db');
-    db.query('SELECT user_id FROM providers WHERE id = $1', [conversation.providerId]).then(pRes => {
-      if (pRes.rows.length > 0) {
-        const provUserId = pRes.rows[0].user_id;
-        io.to(`user_${provUserId}`).emit('chat:message_sent', payload);
-      }
-    });
+    if (conversation.providerId) {
+      db.query('SELECT user_id FROM providers WHERE id = $1', [conversation.providerId]).then(pRes => {
+        if (pRes.rows.length > 0) {
+          const provUserId = pRes.rows[0].user_id;
+          io.to(`user_${provUserId}`).emit('chat:message_sent', payload);
+        }
+      });
+    }
   } catch (err) {}
 
   console.log(`[Socket Broadcast] chat:message_sent emitted for message ${message.id}`);
@@ -303,9 +314,13 @@ function emitMessageSent(message, conversation) {
   try {
     const { sendPushNotification } = require('./pushNotifications');
     const db = require('../db');
-    const recipientUserId = message.senderId === conversation.customerId ? null : conversation.customerId;
+    
+    // If sender is customer, recipient is provider user_id. If sender is provider, recipient is customer_id.
+    const isCustomerSender = String(message.senderId) === String(conversation.customerId);
     
     const notifyRecipient = (targetUserId) => {
+      if (!targetUserId) return;
+      console.log(`[Push Dispatch] Sending Chat Push to User ID: ${targetUserId}`);
       sendPushNotification(
         targetUserId,
         'New Message',
@@ -315,14 +330,18 @@ function emitMessageSent(message, conversation) {
       );
     };
 
-    if (recipientUserId) {
-      notifyRecipient(recipientUserId);
+    if (!isCustomerSender) {
+      // Sender is Provider -> Recipient is Customer
+      notifyRecipient(conversation.customerId);
     } else {
+      // Sender is Customer -> Recipient is Provider user_id
       db.query('SELECT user_id FROM providers WHERE id = $1', [conversation.providerId]).then(pRes => {
         if (pRes.rows.length > 0) notifyRecipient(pRes.rows[0].user_id);
       });
     }
-  } catch (pErr) {}
+  } catch (pErr) {
+    console.error('[Push Chat Dispatch Error]', pErr.message);
+  }
 }
 
 function emitWalletUpdated(providerId, walletData) {
