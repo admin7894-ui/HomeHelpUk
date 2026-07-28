@@ -84,7 +84,7 @@ export const registerForPushNotificationsAsync = async () => {
     }
 
     console.log('[Push Registration] Permission GRANTED. Fetching Expo Push Token...');
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId || '5d61a1d9-6d9e-4fc2-8bef-988915d7c4c2';
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId || '82b35725-7198-4cf8-90ff-1a3a15b04e89';
     const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
     const pushToken = tokenData.data;
 
