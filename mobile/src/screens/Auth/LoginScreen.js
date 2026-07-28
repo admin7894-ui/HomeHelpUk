@@ -32,6 +32,8 @@ export default function LoginScreen({ navigation }) {
       console.log(`[PERF] Login API response received: ${t1 - t0}ms`);
       
       await login(data.user, data.token);
+      const { registerForPushNotificationsAsync } = require('../../services/notifications');
+      registerForPushNotificationsAsync();
       const t2 = Date.now();
       console.log(`[PERF] Session stored & state updated: ${t2 - t1}ms (Total Login Flow: ${t2 - t0}ms)`);
     } catch (err) {
