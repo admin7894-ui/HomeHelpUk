@@ -45,24 +45,27 @@ export default function ChatScreen({ route, navigation }) {
     );
   };
 
+  const [conversationId, setConversationId] = useState(null);
+
   const loadMessages = async () => {
     try {
       const { data } = await api.get(`/chats/${bookingId}`);
-      if (data.chat && data.chat.messages) {
-        const formatted = data.chat.messages.map((m) => ({
-          id: m.id,
-          from: m.senderId === user.id ? 'me' : 'them',
-          text: m.text,
-          time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          read: m.read,
-        }));
-        setMessages(formatted);
-        
-        if (data.chat.messages.some(m => m.senderId !== user.id && !m.read)) {
-          markAsRead(bookingId);
-        }
-      }
       if (data.chat) {
+        setConversationId(data.chat.id);
+        if (data.chat.messages) {
+          const formatted = data.chat.messages.map((m) => ({
+            id: m.id,
+            from: String(m.senderId) === String(user.id) ? 'me' : 'them',
+            text: m.text,
+            time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            read: Boolean(m.read),
+          }));
+          setMessages(formatted);
+          
+          if (data.chat.messages.some(m => m.senderId !== user.id && !m.read)) {
+            markAsRead(bookingId);
+          }
+        }
         setContext(prev => ({
           ...prev,
           contactName: user.role === 'customer' ? data.chat.providerName : data.chat.customerName,
@@ -88,10 +91,14 @@ export default function ChatScreen({ route, navigation }) {
         if (!data || !data.message) return;
         const msgConvId = String(data.message.conversationId || data.conversation?.id || '');
         const msgBookingId = String(data.message.bookingId || data.conversation?.bookingId || '');
+        
         const currentBookingId = String(bookingId || '');
+        const currentConvId = String(conversationId || '');
 
-        const isMatch = (currentBookingId && msgBookingId === currentBookingId) || 
-                        (msgConvId && msgConvId === String(data.conversation?.id));
+        const isConvMatch = Boolean(currentConvId && msgConvId && msgConvId === currentConvId);
+        const isBookingMatch = Boolean(currentBookingId && msgBookingId && msgBookingId === currentBookingId);
+
+        const isMatch = isConvMatch || isBookingMatch;
 
         if (isMatch) {
           console.log('[Real-Time Chat Message Received]', data.message);
@@ -117,7 +124,7 @@ export default function ChatScreen({ route, navigation }) {
         socket.off('chat:message_sent', handleIncomingMessage);
       };
     }
-  }, [bookingId]);
+  }, [bookingId, conversationId]);
 
   const send = async () => {
     if (!draft.trim()) return;
