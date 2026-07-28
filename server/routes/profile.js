@@ -5,8 +5,8 @@ const authMiddleware = require('../middleware/auth');
 
 router.use(authMiddleware);
 
+router.post('/push-token', profileController.savePushToken);
 router.patch('/:id', profileController.update);
 router.post('/:id/favourites', profileController.toggleFavourite);
-router.post('/push-token', profileController.savePushToken);
 
 module.exports = router;

@@ -55,8 +55,9 @@ export const setupNotificationChannels = async () => {
 };
 
 export const registerForPushNotificationsAsync = async () => {
+  console.log('[Push Registration] Initializing push token registration check...');
   if (isExpoGo) {
-    console.log('[PUSH] Skipping Expo Push Token generation in Expo Go sandbox (remote push requires Development / Standalone APK Build).');
+    console.log('[PUSH] Skipping Expo Push Token generation in Expo Go sandbox (remote push requires Standalone APK Build).');
     return null;
   }
 
@@ -72,31 +73,38 @@ export const registerForPushNotificationsAsync = async () => {
     let finalStatus = existingStatus;
 
     if (existingStatus !== 'granted') {
+      console.log('[Push Registration] Requesting notification permissions...');
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
 
     if (finalStatus !== 'granted') {
-      console.log('[Push] Notification permission not granted');
+      console.log('[Push Registration] Notification permission NOT granted');
       return null;
     }
 
+    console.log('[Push Registration] Permission GRANTED. Fetching Expo Push Token...');
     const projectId = Constants.expoConfig?.extra?.eas?.projectId || '5d61a1d9-6d9e-4fc2-8bef-988915d7c4c2';
     const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
     const pushToken = tokenData.data;
 
-    console.log('[Push Token Generated]', pushToken);
+    console.log(`[Push Registration] Token generated successfully: ${pushToken.slice(0, 25)}...`);
 
     // Register token asynchronously with backend
-    api.post('/profile/push-token', {
-      pushToken,
-      platform: Platform.OS,
-      deviceId: Device.deviceName || `${Platform.OS}_${Date.now()}`
-    }).catch(err => console.log('[Push Token Register Error]', err.message));
+    try {
+      const res = await api.post('/profile/push-token', {
+        pushToken,
+        platform: Platform.OS,
+        deviceId: Device.deviceName || `${Platform.OS}_${Date.now()}`
+      });
+      console.log('[Push Registration] Backend registration response:', res.status, res.data?.message);
+    } catch (err) {
+      console.log('[Push Registration Error] Backend API registration failed:', err.message);
+    }
 
     return pushToken;
   } catch (error) {
-    console.log('[Push Token Error]', error.message);
+    console.log('[Push Registration Error]', error.message);
     return null;
   }
 };
