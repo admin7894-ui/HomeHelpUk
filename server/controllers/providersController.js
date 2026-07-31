@@ -104,7 +104,7 @@ exports.getAll = async (req, res) => {
     if (date && time) {
       const activeStatuses = ['pending', 'assigned', 'en_route', 'in_progress', 'confirmed', 'accepted'];
       const activeBookingsRes = await db.query(
-        `SELECT provider_id, date, time, duration_hours as "durationHours", status
+        `SELECT provider_id, TO_CHAR(date, 'YYYY-MM-DD') as date, time, duration_hours as "durationHours", status
          FROM bookings
          WHERE status = ANY($1)`,
         [activeStatuses]
@@ -112,10 +112,10 @@ exports.getAll = async (req, res) => {
 
       const activeBookings = activeBookingsRes.rows.map(b => ({
         ...b,
-        durationHours: Number(b.durationHours)
+        durationHours: Number(b.durationHours) || 1
       }));
 
-      const newBookingTimeSlot = { date, time, durationHours: durationHours || 1 };
+      const newBookingTimeSlot = { date: String(date).split('T')[0], time, durationHours: Number(durationHours) || 1 };
 
       providers = providers.filter(provider => {
         const providerActiveBookings = activeBookings.filter(b => b.provider_id === provider.id);

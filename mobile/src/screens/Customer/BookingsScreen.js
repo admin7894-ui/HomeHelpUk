@@ -178,31 +178,58 @@ export default function BookingsScreen({ navigation }) {
 
                 {/* Pricing Breakdown */}
                 <View style={{ marginTop: spacing.sm, gap: 4 }}>
-                  {item.pricingBreakdown && item.pricingBreakdown.baseServiceCost !== undefined ? (
-                    <>
-                      <View style={styles.rowBetween}>
-                        <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale) }}>Base Service Price</Text>
-                        <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale) }}>£{item.pricingBreakdown.baseServiceCost.toFixed(2)}</Text>
-                      </View>
-                      {item.pricingBreakdown.additionalQuantityCharge > 0 && (
+                  {(() => {
+                    const pb = item.pricingBreakdown || item.estimatedPricing || {};
+                    const basePrice = Number(pb.basePrice ?? pb.baseServiceCost ?? item.servicePrice ?? (item.total - item.serviceFee));
+                    const extraUnitsCost = Number(pb.extraUnitsCost ?? pb.additionalQuantityCharge ?? 0);
+                    const extraUnitsCount = Number(pb.extraUnits ?? pb.extraQuantity ?? 0);
+                    const isCooking = (item.serviceName || '').toLowerCase().includes('chef') || 
+                                      (item.serviceName || '').toLowerCase().includes('cook') || 
+                                      (item.serviceId || '').toLowerCase().includes('cook');
+
+                    let familyLabel = item.familySize?.label || (item.familySize?.title ? `${item.familySize.title}` : item.familySizeLabel);
+
+                    if (!familyLabel && isCooking) {
+                      if (extraUnitsCount >= 4 || Number(pb.selectedQuantity || 0) >= 7) {
+                        familyLabel = 'Large Family (7+ people)';
+                      } else if (extraUnitsCount >= 1 || Number(pb.selectedQuantity || 0) >= 4) {
+                        familyLabel = 'Medium Family (4–6 people)';
+                      } else {
+                        familyLabel = 'Small Family (1–3 people)';
+                      }
+                    }
+                    const addonsSubtotal = Number(pb.addonsCost ?? pb.addonsSubtotal ?? 0);
+
+                    return (
+                      <>
                         <View style={styles.rowBetween}>
-                          <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale) }}>
-                            Additional {item.pricingBreakdown.quantityUnitLabel || 'Qty'} ({item.pricingBreakdown.extraQuantity})
-                          </Text>
-                          <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale) }}>£{item.pricingBreakdown.additionalQuantityCharge.toFixed(2)}</Text>
+                          <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale) }}>Base Service Price</Text>
+                          <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale) }}>£{basePrice.toFixed(2)}</Text>
                         </View>
-                      )}
-                      <View style={styles.rowBetween}>
-                        <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale), fontWeight: '700' }}>Service Subtotal (Provider Payout)</Text>
-                        <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale), fontWeight: '700' }}>£{item.pricingBreakdown.subtotal.toFixed(2)}</Text>
-                      </View>
-                    </>
-                  ) : (
-                    <View style={styles.rowBetween}>
-                      <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale), fontWeight: '700' }}>Service Subtotal (Provider Payout)</Text>
-                      <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale), fontWeight: '700' }}>£{(item.total - item.serviceFee).toFixed(2)}</Text>
-                    </View>
-                  )}
+                        {familyLabel && extraUnitsCost > 0 ? (
+                          <View style={styles.rowBetween}>
+                            <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale) }}>{familyLabel}</Text>
+                            <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale) }}>+£{extraUnitsCost.toFixed(2)}</Text>
+                          </View>
+                        ) : extraUnitsCost > 0 ? (
+                          <View style={styles.rowBetween}>
+                            <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale) }}>Additional Units</Text>
+                            <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale) }}>+£{extraUnitsCost.toFixed(2)}</Text>
+                          </View>
+                        ) : null}
+                        {addonsSubtotal > 0 && (
+                          <View style={styles.rowBetween}>
+                            <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale) }}>Add-ons Cost</Text>
+                            <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale) }}>+£{addonsSubtotal.toFixed(2)}</Text>
+                          </View>
+                        )}
+                        <View style={styles.rowBetween}>
+                          <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale), fontWeight: '700' }}>Service Subtotal (Provider Payout)</Text>
+                          <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale), fontWeight: '700' }}>£{(basePrice + extraUnitsCost + addonsSubtotal).toFixed(2)}</Text>
+                        </View>
+                      </>
+                    );
+                  })()}
                   <View style={styles.rowBetween}>
                     <Text style={{ color: theme.textMuted, fontSize: scaledFont(12, fontScale) }}>Platform Fee (11%)</Text>
                     <Text style={{ color: theme.text, fontSize: scaledFont(12, fontScale) }}>£{item.serviceFee.toFixed(2)}</Text>

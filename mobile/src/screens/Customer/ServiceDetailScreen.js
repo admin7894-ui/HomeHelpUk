@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Image, ScrollView, Dimensions, Alert, TextInput } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Card from '../../components/Card';
@@ -27,13 +28,20 @@ export default function ServiceDetailScreen({ route, navigation }) {
   const { serviceId } = route.params;
   const insets = useSafeAreaInsets();
   const { highContrast, fontScale } = useAppStore();
-  const { categories, draft, setDraft, providers, fetchProvidersByService } = useBookingStore();
+  const { categories, draft, setDraft, providers, fetchProvidersByService, fetchCategories } = useBookingStore();
   const theme = getTheme(highContrast);
 
   const [activeTab, setActiveTab] = useState('about'); // 'about' | 'gallery' | 'reviews'
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [expandedFaqIndex, setExpandedFaqIndex] = useState(null);
+  const [showGif, setShowGif] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCategories(true);
+    }, [])
+  );
 
   // Fetch Service object
   const findService = () => {
@@ -51,6 +59,7 @@ export default function ServiceDetailScreen({ route, navigation }) {
   const { service, mainCategory } = findService();
 
   useEffect(() => {
+    fetchCategories(true);
     if (service) {
       fetchProvidersByService(service.id);
     }
@@ -90,27 +99,6 @@ export default function ServiceDetailScreen({ route, navigation }) {
   };
 
   const serviceConfig = getServiceConfig(serviceId, service, mainCategory);
-
-  if (serviceConfig.isActive === false) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-        <Ionicons name="alert-circle-outline" size={64} color="#EF4444" style={{ marginBottom: 16 }} />
-        <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A', textAlign: 'center', marginBottom: 8 }}>
-          Service Unavailable
-        </Text>
-        <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 24 }}>
-          This service is no longer available on HomeHelpUK.
-        </Text>
-        <TouchableOpacity
-          style={{ backgroundColor: '#0A3925', paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12 }}
-          onPress={() => navigation.navigate('CategoriesScreen')}
-        >
-          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>Browse Available Services</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   const unitConfig = serviceConfig.quantityConfig;
   const isQuantityBasedService = unitConfig.enabled;
 
@@ -131,6 +119,33 @@ export default function ServiceDetailScreen({ route, navigation }) {
   const [itemQuantities, setItemQuantities] = useState({ sofa: 1, boxes: 5, bed: 1 });
   const [selectedAssistance, setSelectedAssistance] = useState(['load_unload']);
   const [selectedVehicleId, setSelectedVehicleId] = useState('large_van');
+  const [selectedFamilySizeId, setSelectedFamilySizeId] = useState('small');
+  const [quantity, setQuantity] = useState(() => (includedQty > 0 ? includedQty : minQty));
+
+  useEffect(() => {
+    fetchCategories(true);
+    if (service) {
+      fetchProvidersByService(service.id);
+    }
+  }, [serviceId]);
+
+  useEffect(() => {
+    if (service && mainCategory) {
+      setDraft({
+        categoryId: mainCategory.id,
+        serviceId: service.id,
+        serviceName: service.name,
+        servicePrice: service.price,
+        serviceUnit: service.unit,
+        baseIncludes: service.baseIncludes || '',
+        additionalCharge: service.additionalCharge || 0,
+        maxQuantity: service.maxQuantity || 0,
+        dynamicPricing: service.dynamicPricing || {},
+      });
+    }
+  }, [serviceId]);
+
+
 
   const updateItemQty = (itemId, delta) => {
     setItemQuantities(prev => {
@@ -177,48 +192,35 @@ export default function ServiceDetailScreen({ route, navigation }) {
     { id: 'large', title: 'Large Family', peopleRange: '7+ people', description: 'Generous meal prep', quantity: 8 },
   ];
 
-  const [selectedFamilySizeId, setSelectedFamilySizeId] = useState('small');
-  const [quantity, setQuantity] = useState(() => (includedQty > 0 ? includedQty : minQty));
+  const adminPricingRules = service?.pricingRules || {};
+
+  const effectivePricingRules = {
+    pricingModel: adminPricingRules.pricingModel || (isCookingService ? 'per_person' : (service?.unit === 'hr' ? 'per_hour' : 'fixed')),
+    basePrice: Number(service?.price) || Number(adminPricingRules.basePrice) || 0,
+    includedQuantity: Number(adminPricingRules.includedQuantity ?? unitConfig?.includedQty ?? (isCookingService ? 3 : 1)),
+    additionalUnitPrice: Number(adminPricingRules.additionalUnitPrice ?? service?.additionalCharge ?? unitConfig?.extraUnitPrice ?? 0),
+    enablePerUnit: Boolean(adminPricingRules.enablePerUnit || isCookingService || unitConfig?.enabled),
+    includedUnit: adminPricingRules.unitLabel || service?.unit || 'visit',
+    additionalUnit: adminPricingRules.unitLabelPlural || service?.unit || 'visit',
+    minimumQuantity: Number(adminPricingRules.minimumQuantity) || 1,
+    maximumQuantity: Number(adminPricingRules.maximumQuantity || service?.maxQuantity || 20),
+    ...adminPricingRules
+  };
 
   const familyOptionsWithPricing = FAMILY_SIZE_OPTIONS.map((option) => {
     const calc = calculateServicePrice({
       basePrice: service?.effectivePrice || service?.price || 0,
       selectedAddons: selectedAddons,
       quantity: option.quantity,
-      pricingRules
+      pricingRules: effectivePricingRules,
+      serviceConfig,
+      serviceId: service?.id
     });
     return { ...option, subtotal: calc.subtotal, extraUnitsCost: calc.extraUnitsCost, extraUnits: calc.extraUnits };
   });
 
   const selectedFamilyOption = familyOptionsWithPricing.find((o) => o.id === selectedFamilySizeId) || familyOptionsWithPricing[0];
   const activeQuantity = isCookingService ? selectedFamilyOption.quantity : quantity;
-
-  useEffect(() => {
-    if (service && mainCategory) {
-      setDraft({
-        categoryId: mainCategory.id,
-        serviceId: service.id,
-        serviceName: service.name,
-        servicePrice: service.price,
-        serviceUnit: service.unit,
-        baseIncludes: service.baseIncludes || '',
-        additionalCharge: service.additionalCharge || 0,
-        maxQuantity: service.maxQuantity || 0,
-        dynamicPricing: service.dynamicPricing || {},
-      });
-    }
-  }, [serviceId]);
-
-  if (!service) {
-    return (
-      <View style={[styles.errorLayout, { backgroundColor: theme.background }]}>
-        <Text style={{ color: theme.text, fontSize: 16 }}>Service details not found.</Text>
-        <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 12 }}>
-          <Text style={{ color: '#0A3925', fontWeight: '800' }}>Go Back to Home</Text>
-        </Pressable>
-      </View>
-    );
-  }
 
   const getDefaultInclusions = () => {
     if (isCookingService) {
@@ -399,14 +401,19 @@ export default function ServiceDetailScreen({ route, navigation }) {
     basePrice: (service?.effectivePrice || service?.price || 0) + (isMovingService ? movingAdditionsTotal : 0),
     selectedAddons: selectedAddons,
     quantity: isMovingService ? 1 : activeQuantity,
-    pricingRules,
+    pricingRules: effectivePricingRules,
     serviceConfig,
-    serviceId: service.id
+    serviceId: service?.id
   });
 
   const { subtotal } = pricingBreakdown;
 
   const handleBookNow = () => {
+    if (eligibleProviders.length === 0) {
+      Alert.alert('Service Unavailable', 'No professionals are currently available for this service.');
+      return;
+    }
+
     const formattedAddons = selectedAddons.map((a) => ({
       serviceId: a.serviceId || a.id,
       name: a.name,
@@ -443,10 +450,40 @@ export default function ServiceDetailScreen({ route, navigation }) {
     navigation.navigate('BookDateTime');
   };
 
+  if (!service) {
+    return (
+      <View style={[styles.errorLayout, { backgroundColor: theme.background }]}>
+        <Text style={{ color: theme.text, fontSize: 16 }}>Service details not found.</Text>
+        <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 12 }}>
+          <Text style={{ color: '#0A3925', fontWeight: '800' }}>Go Back to Home</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (serviceConfig?.isActive === false) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+        <Ionicons name="alert-circle-outline" size={64} color="#EF4444" style={{ marginBottom: 16 }} />
+        <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A', textAlign: 'center', marginBottom: 8 }}>
+          Service Unavailable
+        </Text>
+        <Text style={{ fontSize: 15, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 24 }}>
+          This service is no longer available on HomeHelpUK.
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: '#0A3925', paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12 }}
+          onPress={() => navigation.navigate('CategoriesScreen')}
+        >
+          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>Browse Available Services</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   const exactServiceImage = getServiceImage(service);
   const galleryThumbnails = getServiceGallery(service);
   const previewGif = getServicePreviewGif(service.id);
-  const [showGif, setShowGif] = useState(false);
 
   return (
     <View style={styles.mainLayout}>
@@ -1090,7 +1127,11 @@ export default function ServiceDetailScreen({ route, navigation }) {
           <Text style={styles.priceAmountText}>£{subtotal.toFixed(2)}</Text>
         </View>
 
-        <Pressable onPress={handleBookNow} style={styles.bookNowPillBtn}>
+        <Pressable
+          onPress={handleBookNow}
+          disabled={eligibleProviders.length === 0}
+          style={[styles.bookNowPillBtn, eligibleProviders.length === 0 && styles.bookNowPillBtnDisabled]}
+        >
           <Text style={styles.bookNowPillBtnText}>Book Now</Text>
         </Pressable>
       </View>
@@ -1493,6 +1534,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 4,
+  },
+  bookNowPillBtnDisabled: {
+    backgroundColor: '#94A3B8',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   bookNowPillBtnText: { color: '#FFFFFF', fontWeight: '900', fontSize: 15 },
   movingAddressBox: {

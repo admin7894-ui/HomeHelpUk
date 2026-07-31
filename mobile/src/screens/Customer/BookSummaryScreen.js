@@ -65,8 +65,10 @@ export default function BookSummaryScreen({ navigation }) {
 
   // Provider-specific pricing calculations
   const providerService = provider?.services?.find(s => (typeof s === 'string' ? s === draft.serviceId : s.serviceId === draft.serviceId));
-  const baseServiceRate = (typeof providerService === 'object' ? providerService.customPrice : null) || provider?.hourlyRate || draft.servicePrice || 20;
-  const providerPricingRules = (typeof providerService === 'object' && providerService.pricingRules) ? providerService.pricingRules : (draft.pricingRules || {});
+  const baseServiceRate = Number(draft.servicePrice || (typeof providerService === 'object' ? providerService.customPrice : null) || provider?.hourlyRate || 20);
+  const providerPricingRules = (draft.pricingRules && Object.keys(draft.pricingRules).length > 0)
+    ? draft.pricingRules
+    : ((typeof providerService === 'object' && providerService.pricingRules) ? providerService.pricingRules : {});
 
   const serviceConfig = draft.serviceConfig || getServiceConfig(draft.serviceId, { id: draft.serviceId, name: draft.serviceName, price: draft.servicePrice, unit: draft.serviceUnit }, { id: draft.categoryId });
 

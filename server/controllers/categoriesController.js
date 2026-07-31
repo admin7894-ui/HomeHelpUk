@@ -108,7 +108,7 @@ exports.invalidateCategoriesCache = invalidateCategoriesCache;
 async function fetchCategoriesSummaryHierarchy() {
   const catRes = await db.query('SELECT id, name, icon, image_url, price, unit, description, is_visible, order_index FROM categories WHERE is_visible = true ORDER BY order_index ASC, name ASC');
   const subRes = await db.query('SELECT id, name, category_id FROM subcategories ORDER BY name ASC');
-  const srvRes = await db.query('SELECT id, name, category_id, subcategory_id, price, unit, description, short_description, duration FROM services WHERE is_active = true AND is_visible = true ORDER BY order_index ASC, name ASC');
+  const srvRes = await db.query('SELECT id, name, category_id, subcategory_id, price, unit, description, short_description, duration, base_includes, additional_charge, max_quantity, whats_included, whats_not_included, addons, faqs, pricing_rules FROM services WHERE is_active = true AND is_visible = true ORDER BY order_index ASC, name ASC');
 
   return catRes.rows.map(cat => {
     const subcats = subRes.rows
@@ -124,7 +124,18 @@ async function fetchCategoriesSummaryHierarchy() {
             unit: srv.unit,
             duration: srv.duration,
             description: srv.description || '',
-            shortDescription: srv.short_description || srv.description || ''
+            shortDescription: srv.short_description || srv.description || '',
+            baseIncludes: srv.base_includes || '',
+            additionalCharge: srv.additional_charge !== null ? Number(srv.additional_charge) : 0,
+            maxQuantity: srv.max_quantity || 10,
+            whatsIncluded: srv.whats_included || [],
+            includedItems: srv.whats_included || [],
+            whatsNotIncluded: srv.whats_not_included || [],
+            notIncludedItems: srv.whats_not_included || [],
+            addons: srv.addons || [],
+            availableAddOns: srv.addons || [],
+            faqs: srv.faqs || [],
+            pricingRules: srv.pricing_rules || {}
           }));
         return {
           id: sub.id,
@@ -154,7 +165,8 @@ exports.getAll = async (req, res) => {
     const isSummary = req.query.summary === 'true';
     const now = Date.now();
 
-    if (isSummary && categoriesCache.summary && (now - categoriesCache.timestamp < CACHE_TTL_MS)) {
+    const forceNoCache = req.query.nocache === 'true';
+    if (!forceNoCache && isSummary && categoriesCache.summary && (now - categoriesCache.timestamp < CACHE_TTL_MS)) {
       res.setHeader('Cache-Control', 'public, max-age=300');
       return res.json({ success: true, categories: categoriesCache.summary, cached: true });
     }

@@ -14,6 +14,15 @@ function sanitizeBookingForResponse(req, booking) {
 }
 
 function formatBookingRow(row) {
+  const photosObj = row.photos || {};
+  const verificationDetails = photosObj.verificationDetails || {
+    startVerificationCompleted: ['in_progress', 'completed'].includes(row.status),
+    startVerificationTime: row.updated_at,
+    completionVerificationCompleted: row.status === 'completed',
+    completionVerificationTime: row.updated_at,
+    verifiedBy: row.provider_id || null
+  };
+
   return {
     id: row.id,
     customerId: row.customer_id,
@@ -37,7 +46,8 @@ function formatBookingRow(row) {
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
     startOtp: row.start_otp,
     completionOtp: row.completion_otp,
-    photos: row.photos || {},
+    photos: photosObj,
+    verificationDetails,
     declineRecords: row.decline_records || []
   };
 }
@@ -427,7 +437,21 @@ exports.updateStatus = async (req, res) => {
       }
     }
 
-    const mergedPhotos = photos ? { ...booking.photos, ...photos } : booking.photos;
+    const existingVerificationDetails = (booking.photos && booking.photos.verificationDetails) || {};
+    const updatedVerificationDetails = {
+      ...existingVerificationDetails,
+      startVerificationCompleted: status === 'in_progress' || status === 'completed' || Boolean(existingVerificationDetails.startVerificationCompleted),
+      startVerificationTime: (status === 'in_progress' && !existingVerificationDetails.startVerificationTime) ? new Date().toISOString() : (existingVerificationDetails.startVerificationTime || null),
+      completionVerificationCompleted: status === 'completed' || Boolean(existingVerificationDetails.completionVerificationCompleted),
+      completionVerificationTime: status === 'completed' ? new Date().toISOString() : (existingVerificationDetails.completionVerificationTime || null),
+      verifiedBy: updatedProviderId || existingVerificationDetails.verifiedBy || req.user.id
+    };
+
+    const mergedPhotos = {
+      ...(booking.photos || {}),
+      ...(photos || {}),
+      verificationDetails: updatedVerificationDetails
+    };
 
     await client.query(
       `UPDATE bookings
@@ -454,6 +478,15 @@ exports.updateStatus = async (req, res) => {
     }
 
     await client.query('COMMIT');
+
+    if (status === 'assigned') {
+      try {
+        const chatsController = require('./chatsController');
+        await chatsController.ensureConversationExists(booking.id, true);
+      } catch (cErr) {
+        console.warn('[Auto Conversation Creation Error]', cErr.message);
+      }
+    }
 
     const updatedRes = await db.query(
       `SELECT b.*, u.name as customer_name FROM bookings b JOIN users u ON b.customer_id = u.id WHERE b.id = $1`,

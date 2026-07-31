@@ -558,6 +558,7 @@ function setupEventListeners() {
       duration: `${defaultDuration} hrs`,
       description: document.getElementById('srvFullDesc').value,
       baseIncludes: document.getElementById('srvShortDesc').value,
+      additionalCharge: extraUnitPrice,
       imageUrl: document.getElementById('srvImageUrl').value,
       isActive: document.getElementById('srvIsActive').checked,
       isVisible: document.getElementById('srvIsVisible').checked,

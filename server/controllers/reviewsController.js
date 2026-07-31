@@ -61,20 +61,24 @@ exports.create = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Provider does not match booking' });
     }
 
-    const existingRes = await client.query('SELECT id FROM reviews WHERE booking_id = $1 AND customer_id = $2', [bookingId, customerId]);
-    if (existingRes.rows.length > 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ success: false, message: 'You have already reviewed this booking' });
-    }
-
-    const reviewId = generateId('rev');
+    let reviewId;
     const nowIso = new Date().toISOString();
 
-    await client.query(
-      `INSERT INTO reviews (id, booking_id, provider_id, customer_id, rating, comment, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [reviewId, bookingId, providerId, customerId, Number(rating), comment || '', nowIso]
-    );
+    const existingRes = await client.query('SELECT id FROM reviews WHERE booking_id = $1 AND customer_id = $2', [bookingId, customerId]);
+    if (existingRes.rows.length > 0) {
+      reviewId = existingRes.rows[0].id;
+      await client.query(
+        `UPDATE reviews SET rating = $1, comment = $2, created_at = $3 WHERE id = $4`,
+        [Number(rating), comment || '', nowIso, reviewId]
+      );
+    } else {
+      reviewId = generateId('rev');
+      await client.query(
+        `INSERT INTO reviews (id, booking_id, provider_id, customer_id, rating, comment, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [reviewId, bookingId, providerId, customerId, Number(rating), comment || '', nowIso]
+      );
+    }
 
     // Recalculate provider aggregate rating
     const aggRes = await client.query(

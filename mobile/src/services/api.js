@@ -14,8 +14,11 @@ const FALLBACK_URLS = IS_DEV
   : ['https://homehelpuk.onrender.com/api'];
 
 const getInitialBaseUrl = () => {
-  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  let envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (envUrl && !envUrl.includes('10.36.249.137')) {
+    if (Platform.OS === 'android' && envUrl.includes('localhost')) {
+      return envUrl.replace('localhost', '10.0.2.2');
+    }
     return envUrl;
   }
   if (IS_DEV) {

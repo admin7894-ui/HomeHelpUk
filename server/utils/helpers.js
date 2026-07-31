@@ -44,19 +44,28 @@ function findCategoryOrService(categories, id) {
 }
 
 function parseTime(dateStr, timeStr) {
-  // e.g., "2026-07-23", "10:00 AM"
   if (!dateStr || !timeStr) return null;
   
   try {
-    const [time, modifier] = timeStr.split(' ');
-    let [hours, minutes] = time.split(':');
-    
-    if (hours === '12') hours = '00';
-    if (modifier === 'PM') {
-      hours = parseInt(hours, 10) + 12;
+    let cleanDate = dateStr;
+    if (dateStr instanceof Date) {
+      cleanDate = dateStr.toISOString().split('T')[0];
+    } else if (typeof dateStr === 'string' && dateStr.includes('T')) {
+      cleanDate = dateStr.split('T')[0];
     }
+
+    const parts = String(timeStr).trim().split(/\s+/);
+    if (parts.length < 2) return null;
+    const [time, modifier] = parts;
+    let [hours, minutes] = time.split(':');
+    let h = parseInt(hours, 10);
+    const m = parseInt(minutes, 10) || 0;
+
+    const mod = modifier.toUpperCase();
+    if (mod === 'PM' && h < 12) h += 12;
+    if (mod === 'AM' && h === 12) h = 0;
     
-    const isoString = `${dateStr}T${hours.toString().padStart(2, '0')}:${minutes}:00`;
+    const isoString = `${cleanDate}T${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`;
     return new Date(isoString).getTime();
   } catch (err) {
     return null;

@@ -97,7 +97,8 @@ export const useBookingStore = create((set, get) => ({
     const requestPromise = (async () => {
       set({ loading: categories.length === 0, error: null });
       try {
-        const { data } = await api.get('/categories?summary=true');
+        const url = forceRefresh ? `/categories?summary=true&nocache=true&_t=${Date.now()}` : '/categories?summary=true';
+        const { data } = await api.get(url);
         const sorted = (data.categories || []).sort((a, b) => {
           const idxA = LAUNCH_CATEGORY_ORDER.indexOf(a.id);
           const idxB = LAUNCH_CATEGORY_ORDER.indexOf(b.id);

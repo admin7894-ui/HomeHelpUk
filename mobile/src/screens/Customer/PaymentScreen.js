@@ -45,8 +45,8 @@ export default function PaymentScreen({ route, navigation }) {
         notes: bookingNotes,
         durationHours: Number(draft.durationHours),
         serviceQuantity: Number(draft.serviceQuantity || 1),
-        pricingBreakdown: { ...billing, familySizeLabel: draft.familySizeLabel, movingDetails: draft.movingDetails, unitConfig: draft.unitConfig },
-        pricingSnapshot: { ...(draft.pricingSnapshot || billing), familySizeLabel: draft.familySizeLabel, movingDetails: draft.movingDetails, unitConfig: draft.unitConfig }
+        pricingBreakdown: { ...billing, familySize: draft.familySize, familySizeLabel: draft.familySizeLabel, movingDetails: draft.movingDetails, unitConfig: draft.unitConfig },
+        pricingSnapshot: { ...(draft.pricingSnapshot || billing), familySize: draft.familySize, familySizeLabel: draft.familySizeLabel, movingDetails: draft.movingDetails, unitConfig: draft.unitConfig }
       });
 
       // Reset navigation stack to completely remove Booking Summary and Payment screens.

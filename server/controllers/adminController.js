@@ -474,6 +474,7 @@ exports.updateService = async (req, res) => {
       ]
     );
 
+    invalidateCategoriesCache();
     res.json({ success: true, message: 'Service updated successfully' });
   } catch (err) {
     console.error('[Admin updateService Error]', err);

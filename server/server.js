@@ -1,3 +1,4 @@
+// Server entry point for HomeHelpUK API
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();

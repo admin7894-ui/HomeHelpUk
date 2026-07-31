@@ -40,16 +40,21 @@ export function calculateServicePrice({
     pricingRules.enablePerUnit || 
     (Array.isArray(pricingRules.enabledModels) && pricingRules.enabledModels.some(m => m !== 'fixed' && m !== 'per_hour')) ||
     model === 'per_person' || 
+    model === 'perPerson' ||
     model === 'per_unit' ||
+    model === 'unitBased' ||
     model === 'per_room' ||
     model === 'per_window' ||
     model === 'per_item' ||
+    model === 'itemBased' ||
     model === 'per_pet' ||
     model === 'per_child' ||
     model === 'multi'
   );
 
-  const includedQty = Number(pricingRules.includedQuantity) || 4;
+  const includedQty = (pricingRules.includedQuantity !== undefined && pricingRules.includedQuantity !== null) 
+    ? Number(pricingRules.includedQuantity) 
+    : 1;
   const extraUnitPrice = isUnitEnabled ? (Number(pricingRules.additionalUnitPrice) || 0) : 0;
   const qty = Math.max(1, Number(quantity) || 1);
 

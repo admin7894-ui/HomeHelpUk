@@ -16,5 +16,32 @@
     "rating": 5,
     "comment": "Good",
     "createdAt": "2026-07-24T10:52:51.249Z"
+  },
+  {
+    "id": "rev_2892a512b308",
+    "bookingId": "booking_e137eb33ba51",
+    "providerId": "prov_a7638a30f72d",
+    "customerId": "user_cde93ce1e126",
+    "rating": 5,
+    "comment": "Hi ",
+    "createdAt": "2026-07-28T05:04:52.711Z"
+  },
+  {
+    "id": "rev_7454aeb91cd1",
+    "bookingId": "booking_dd0ada47ad38",
+    "providerId": "prov_a7638a30f72d",
+    "customerId": "user_cde93ce1e126",
+    "rating": 5,
+    "comment": "Best service ",
+    "createdAt": "2026-07-28T06:59:11.644Z"
+  },
+  {
+    "id": "rev_5343ed1301ef",
+    "bookingId": "booking_baf747df3292",
+    "providerId": "prov_604238ed197f",
+    "customerId": "user_cde93ce1e126",
+    "rating": 1,
+    "comment": "Hi samma , how are you ?",
+    "createdAt": "2026-07-29T04:20:16.450Z"
   }
 ]

@@ -297,112 +297,116 @@ export default function BookingStatusScreen({ route, navigation }) {
         <Card style={[styles.priceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.cardSubTitle, { color: theme.textMuted }]}>PAYMENT DETAILS</Text>
           
-          <View style={styles.billingRow}>
-            <Text style={{ color: theme.textMuted }}>Base Service Price</Text>
-            <Text style={{ color: theme.text }}>
-              £{booking.pricingBreakdown?.baseServiceCost ? booking.pricingBreakdown.baseServiceCost.toFixed(2) : (booking.servicePrice || 20).toFixed(2)}
-            </Text>
-          </View>
+          {(() => {
+            const pb = booking.pricingBreakdown || booking.estimatedPricing || {};
+            const basePrice = Number(pb.basePrice ?? pb.baseServiceCost ?? booking.servicePrice ?? 0);
+            
+            const extraUnitsCost = Number(pb.extraUnitsCost ?? pb.additionalQuantityCharge ?? 0);
+            const extraUnitsCount = Number(pb.extraUnits ?? pb.extraQuantity ?? 0);
+            
+            const extraHoursCost = Number(pb.extraHoursCost ?? 0);
+            const extraHoursCount = Number(pb.extraHours ?? 0);
 
-          {booking.pricingBreakdown?.serviceUnit === 'hr' || (!booking.pricingBreakdown && booking.durationHours) ? (
-            <View style={styles.billingRow}>
-              <Text style={{ color: theme.textMuted }}>Booking Duration</Text>
-              <Text style={{ color: theme.text }}>
-                {booking.pricingBreakdown?.durationHours || booking.durationHours || 2} hours
-              </Text>
-            </View>
-          ) : null}
+            const isCooking = (booking.serviceName || '').toLowerCase().includes('chef') || 
+                              (booking.serviceName || '').toLowerCase().includes('cook') || 
+                              (booking.serviceId || '').toLowerCase().includes('cook');
 
-          {booking.pricingBreakdown?.quantityUnitLabel && (booking.pricingBreakdown.includedQuantity > 0 || booking.pricingBreakdown.additionalQuantityCharge > 0) && (
-            <>
-              <View style={styles.billingRow}>
-                <Text style={{ color: theme.textMuted }}>Included {booking.pricingBreakdown.quantityUnitLabel}</Text>
-                <Text style={{ color: theme.text }}>{booking.pricingBreakdown.includedQuantity}</Text>
-              </View>
-              <View style={styles.billingRow}>
-                <Text style={{ color: theme.textMuted }}>Selected {booking.pricingBreakdown.quantityUnitLabel}</Text>
-                <Text style={{ color: theme.text }}>{booking.pricingBreakdown.selectedQuantity}</Text>
-              </View>
-              {booking.pricingBreakdown.extraQuantity > 0 && (
-                <>
+            let familySizeLabel = booking.familySize?.label || 
+                                  (booking.familySize?.title ? `${booking.familySize.title}${booking.familySize.peopleRange ? ` (${booking.familySize.peopleRange})` : ''}` : null) || 
+                                  booking.familySizeLabel;
+
+            if (!familySizeLabel && isCooking) {
+              if (extraUnitsCount >= 4 || Number(pb.selectedQuantity || 0) >= 7) {
+                familySizeLabel = 'Large Family (7+ people)';
+              } else if (extraUnitsCount >= 1 || Number(pb.selectedQuantity || 0) >= 4) {
+                familySizeLabel = 'Medium Family (4–6 people)';
+              } else {
+                familySizeLabel = 'Small Family (1–3 people)';
+              }
+            }
+
+            const addonsList = Array.isArray(pb.selectedAddons) && pb.selectedAddons.length > 0
+              ? pb.selectedAddons
+              : (Array.isArray(booking.addOns) && booking.addOns.length > 0 ? booking.addOns : []);
+            
+            const addonsSubtotal = addonsList.reduce((sum, a) => sum + Number(a.price || 0), 0) || Number(pb.addonsCost || pb.addonsSubtotal || 0);
+
+            const subtotal = Number(pb.subtotal ?? (basePrice + extraUnitsCost + extraHoursCost + addonsSubtotal));
+            const platformFee = Number(pb.platformFee ?? booking.serviceFee ?? (subtotal * 0.11));
+            const totalPaid = Number(booking.total ?? pb.grandTotal ?? pb.totalCost ?? (subtotal + platformFee));
+
+            return (
+              <>
+                <View style={styles.billingRow}>
+                  <Text style={{ color: theme.textMuted }}>Base Service Price</Text>
+                  <Text style={{ color: theme.text }}>£{basePrice.toFixed(2)}</Text>
+                </View>
+
+                {/* Family Tier / Unit Extra Charge */}
+                {familySizeLabel && extraUnitsCost > 0 ? (
                   <View style={styles.billingRow}>
-                    <Text style={{ color: theme.textMuted }}>Additional {booking.pricingBreakdown.quantityUnitLabel}</Text>
-                    <Text style={{ color: theme.text }}>{booking.pricingBreakdown.extraQuantity}</Text>
+                    <Text style={{ color: theme.textMuted }}>{familySizeLabel}</Text>
+                    <Text style={{ color: theme.text }}>+£{extraUnitsCost.toFixed(2)}</Text>
                   </View>
+                ) : extraUnitsCost > 0 ? (
                   <View style={styles.billingRow}>
-                    <Text style={{ color: theme.textMuted }}>Additional Charge</Text>
-                    <Text style={{ color: theme.text }}>£{booking.pricingBreakdown.additionalQuantityCharge?.toFixed(2)}</Text>
+                    <Text style={{ color: theme.textMuted }}>Additional Units ({extraUnitsCount} extra)</Text>
+                    <Text style={{ color: theme.text }}>+£{extraUnitsCost.toFixed(2)}</Text>
                   </View>
-                </>
-              )}
-            </>
-          )}
+                ) : null}
 
-          {booking.pricingBreakdown?.weekendSurcharge > 0 && (
-            <View style={styles.billingRow}>
-              <Text style={{ color: theme.textMuted }}>Weekend Surcharge</Text>
-              <Text style={{ color: theme.text }}>£{booking.pricingBreakdown.weekendSurcharge?.toFixed(2)}</Text>
-            </View>
-          )}
-          {booking.pricingBreakdown?.holidaySurcharge > 0 && (
-            <View style={styles.billingRow}>
-              <Text style={{ color: theme.textMuted }}>Holiday Surcharge</Text>
-              <Text style={{ color: theme.text }}>£{booking.pricingBreakdown.holidaySurcharge?.toFixed(2)}</Text>
-            </View>
-          )}
-          {booking.pricingBreakdown?.emergencyCharge > 0 && (
-            <View style={styles.billingRow}>
-              <Text style={{ color: theme.textMuted }}>Emergency Charge</Text>
-              <Text style={{ color: theme.text }}>£{booking.pricingBreakdown.emergencyCharge?.toFixed(2)}</Text>
-            </View>
-          )}
-          {booking.pricingBreakdown?.travelCharge > 0 && (
-            <View style={styles.billingRow}>
-              <Text style={{ color: theme.textMuted }}>Travel Charge</Text>
-              <Text style={{ color: theme.text }}>£{booking.pricingBreakdown.travelCharge?.toFixed(2)}</Text>
-            </View>
-          )}
-          {(Array.isArray(booking.pricingBreakdown?.selectedAddons) && booking.pricingBreakdown.selectedAddons.length > 0) ? (
-            booking.pricingBreakdown.selectedAddons.map((add, idx) => (
-              <View key={add.serviceId || add.id || `status_addon_${idx}`} style={styles.billingRow}>
-                <Text style={{ color: theme.textMuted }}>{add.name} (Add-on)</Text>
-                <Text style={{ color: theme.text }}>+£{Number(add.price).toFixed(2)}</Text>
-              </View>
-            ))
-          ) : (Array.isArray(booking.addOns) && booking.addOns.length > 0) ? (
-            booking.addOns.map((add, idx) => (
-              <View key={add.serviceId || add.id || `status_addon_${idx}`} style={styles.billingRow}>
-                <Text style={{ color: theme.textMuted }}>{add.name} (Add-on)</Text>
-                <Text style={{ color: theme.text }}>+£{Number(add.price).toFixed(2)}</Text>
-              </View>
-            ))
-          ) : booking.pricingBreakdown?.addonsSubtotal > 0 ? (
-            <View style={styles.billingRow}>
-              <Text style={{ color: theme.textMuted }}>Add-ons Cost</Text>
-              <Text style={{ color: theme.text }}>£{booking.pricingBreakdown.addonsSubtotal?.toFixed(2)}</Text>
-            </View>
-          ) : null}
+                {/* Extra Duration Hours Charge */}
+                {extraHoursCost > 0 && (
+                  <View style={styles.billingRow}>
+                    <Text style={{ color: theme.textMuted }}>Extra Duration ({extraHoursCount} hrs)</Text>
+                    <Text style={{ color: theme.text }}>+£{extraHoursCost.toFixed(2)}</Text>
+                  </View>
+                )}
 
-          <View style={styles.billingRow}>
-            <Text style={{ color: theme.textMuted }}>Platform Trust Fee</Text>
-            <Text style={{ color: theme.text }}>
-              £{(booking.pricingBreakdown?.platformFee || booking.serviceFee || 3.85).toFixed(2)}
-            </Text>
-          </View>
+                {/* Add-ons List */}
+                {addonsList.length > 0 ? (
+                  addonsList.map((add, idx) => (
+                    <View key={add.serviceId || add.id || `status_addon_${idx}`} style={styles.billingRow}>
+                      <Text style={{ color: theme.textMuted }}>{add.name} (Add-on)</Text>
+                      <Text style={{ color: theme.text }}>+£{Number(add.price || 0).toFixed(2)}</Text>
+                    </View>
+                  ))
+                ) : addonsSubtotal > 0 ? (
+                  <View style={styles.billingRow}>
+                    <Text style={{ color: theme.textMuted }}>Add-ons Cost</Text>
+                    <Text style={{ color: theme.text }}>+£{addonsSubtotal.toFixed(2)}</Text>
+                  </View>
+                ) : null}
 
-          {booking.pricingBreakdown?.discount > 0 && (
-            <View style={styles.billingRow}>
-              <Text style={{ color: theme.success, fontWeight: '700' }}>Promo Discount</Text>
-              <Text style={{ color: theme.success, fontWeight: '700' }}>-£{booking.pricingBreakdown.discount?.toFixed(2)}</Text>
-            </View>
-          )}
+                {/* Subtotal */}
+                <View style={[styles.billingRow, { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#E2E8F0' }]}>
+                  <Text style={{ color: theme.text, fontWeight: '600' }}>Subtotal</Text>
+                  <Text style={{ color: theme.text, fontWeight: '600' }}>£{subtotal.toFixed(2)}</Text>
+                </View>
 
-          <View style={styles.totalRow}>
-            <Text style={{ color: theme.text, fontWeight: '800', fontSize: 15 }}>Total Paid</Text>
-            <Text style={{ color: '#0A3925', fontWeight: '900', fontSize: 18 }}>
-              £{(booking.total || 38.85).toFixed(2)}
-            </Text>
-          </View>
+                {/* Platform Trust Fee */}
+                <View style={styles.billingRow}>
+                  <Text style={{ color: theme.textMuted }}>Platform Trust Fee (11%)</Text>
+                  <Text style={{ color: theme.text }}>£{platformFee.toFixed(2)}</Text>
+                </View>
+
+                {pb.discount > 0 && (
+                  <View style={styles.billingRow}>
+                    <Text style={{ color: theme.success, fontWeight: '700' }}>Promo Discount</Text>
+                    <Text style={{ color: theme.success, fontWeight: '700' }}>-£{Number(pb.discount).toFixed(2)}</Text>
+                  </View>
+                )}
+
+                {/* Total Paid */}
+                <View style={styles.totalRow}>
+                  <Text style={{ color: theme.text, fontWeight: '800', fontSize: 15 }}>Total Paid</Text>
+                  <Text style={{ color: '#0A3925', fontWeight: '900', fontSize: 18 }}>
+                    £{totalPaid.toFixed(2)}
+                  </Text>
+                </View>
+              </>
+            );
+          })()}
         </Card>
 
         {/* Action Buttons */}
@@ -410,19 +414,25 @@ export default function BookingStatusScreen({ route, navigation }) {
           {booking.status === 'completed' && (
             <AppButton label="Leave a Rating & Review" onPress={() => navigation.navigate('RateReview', { booking })} />
           )}
-          {provider && (
-            <AppButton
-              label="Message Professional"
-              variant={booking.status === 'completed' ? 'outline' : 'primary'}
-              onPress={() => navigation.navigate('Chat', { 
-                contactName: provider.name, 
-                bookingId: booking.id,
-                serviceName: serviceName,
-                bookingDate: booking.date,
-                bookingTime: booking.time
-              })}
-            />
-          )}
+          {(() => {
+            const status = (booking.status || '').toLowerCase();
+            const isChatAllowed = ['assigned', 'accepted', 'en_route', 'in_progress', 'completed', 'cancelled'].includes(status) && status !== 'pending' && status !== 'rejected';
+            if (!isChatAllowed || !provider) return null;
+
+            return (
+              <AppButton
+                label="Message Professional"
+                variant={booking.status === 'completed' ? 'outline' : 'primary'}
+                onPress={() => navigation.navigate('Chat', { 
+                  contactName: provider.name, 
+                  bookingId: booking.id,
+                  serviceName: serviceName,
+                  bookingDate: booking.date,
+                  bookingTime: booking.time
+                })}
+              />
+            );
+          })()}
         </View>
       </ScrollView>
     </ScreenContainer>

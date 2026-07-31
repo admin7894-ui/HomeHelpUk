@@ -44,16 +44,66 @@ async function getFormattedChat(conversationId) {
   };
 }
 
-async function ensureConversationExists(bookingId) {
+function getChatStatusRule(booking) {
+  if (!booking) {
+    return { active: false, archived: true, hidden: true, reason: 'Booking not found' };
+  }
+
+  const status = (booking.status || '').toLowerCase();
+  const isDisputed = Boolean(booking.is_disputed || booking.hasDispute);
+
+  // Rule 1: Pending or Rejected bookings cannot access or create chat
+  if (status === 'pending' || status === 'rejected') {
+    return { active: false, archived: false, hidden: true, reason: 'Chat is not available before provider accepts job request' };
+  }
+
+  // Rule 2: Active booking execution states
+  if (['assigned', 'accepted', 'en_route', 'in_progress'].includes(status)) {
+    return { active: true, archived: false, hidden: false };
+  }
+
+  const lastUpdate = booking.updated_at ? new Date(booking.updated_at).getTime() : Date.now();
+  const now = Date.now();
+
+  // Rule 3: Post-completion 7-day window
+  if (status === 'completed') {
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    if (now - lastUpdate > SEVEN_DAYS_MS && !isDisputed) {
+      return { active: false, archived: true, hidden: true, reason: 'Chat archived after 7 days of completion' };
+    }
+    return { active: true, archived: false, hidden: false, postCompletion: true };
+  }
+
+  // Rule 4: Cancellation 24-48 hour window
+  if (status === 'cancelled') {
+    const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+    if (now - lastUpdate > TWENTY_FOUR_HOURS_MS && !isDisputed) {
+      return { active: false, archived: true, hidden: true, reason: 'Chat archived after cancellation window' };
+    }
+    return { active: true, archived: false, hidden: false, cancelled: true };
+  }
+
+  return { active: true, archived: false, hidden: false };
+}
+
+async function ensureConversationExists(bookingId, forceAllowPending = false) {
+  // Fetch booking details
+  const bRes = await db.query('SELECT * FROM bookings WHERE id = $1', [bookingId]);
+  if (bRes.rows.length === 0) return null;
+  const b = bRes.rows[0];
+
+  const rule = getChatStatusRule(b);
+  if (!forceAllowPending && rule.hidden && (b.status === 'pending' || b.status === 'rejected')) {
+    return null;
+  }
+
   let cRes = await db.query('SELECT id FROM conversations WHERE booking_id = $1', [bookingId]);
   if (cRes.rows.length > 0) {
     return cRes.rows[0].id;
   }
 
-  // Fetch booking details
-  const bRes = await db.query('SELECT * FROM bookings WHERE id = $1', [bookingId]);
-  if (bRes.rows.length === 0) return null;
-  const b = bRes.rows[0];
+  // If chat is hidden/pending and no force, do not create
+  if (!forceAllowPending && rule.hidden) return null;
 
   // Fetch service name
   let serviceName = 'Service';
@@ -92,12 +142,15 @@ exports.getChats = async (req, res) => {
         c.booking_date as "bookingDate",
         c.booking_time as "bookingTime",
         c.hidden_for,
+        b.status as "bookingStatus",
+        b.updated_at as "bookingUpdatedAt",
         cust.name as "customerName",
         prov_u.name as "providerName",
         lm.text as "lastMessage",
         lm.timestamp as "lastMessageTime",
         COALESCE(un.unread_count, 0)::int as "unreadCount"
       FROM conversations c
+      JOIN bookings b ON c.booking_id = b.id
       JOIN users cust ON c.customer_id = cust.id
       LEFT JOIN providers p ON c.provider_id = p.id
       LEFT JOIN users prov_u ON p.user_id = prov_u.id
@@ -136,6 +189,9 @@ exports.getChats = async (req, res) => {
       const hiddenFor = row.hidden_for || [];
       if (hiddenFor.includes(req.user.id)) continue;
 
+      const rule = getChatStatusRule({ status: row.bookingStatus, updated_at: row.bookingUpdatedAt });
+      if (rule.hidden) continue;
+
       const unreadCount = Number(row.unreadCount) || 0;
       unreadTotal += unreadCount;
 
@@ -147,6 +203,7 @@ exports.getChats = async (req, res) => {
         serviceName: row.serviceName,
         bookingDate: row.bookingDate ? new Date(row.bookingDate).toISOString().split('T')[0] : row.bookingDate,
         bookingTime: row.bookingTime,
+        bookingStatus: row.bookingStatus,
         lastMessage: row.lastMessage || null,
         lastMessageTime: row.lastMessageTime ? new Date(row.lastMessageTime).toISOString() : null,
         unreadCount
@@ -164,7 +221,7 @@ exports.getChat = async (req, res) => {
   try {
     const { bookingId } = req.params;
 
-    const bRes = await db.query('SELECT customer_id, provider_id FROM bookings WHERE id = $1', [bookingId]);
+    const bRes = await db.query('SELECT * FROM bookings WHERE id = $1', [bookingId]);
     if (bRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
     const b = bRes.rows[0];
 
@@ -178,11 +235,16 @@ exports.getChat = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
     }
 
+    const rule = getChatStatusRule(b);
+    if (rule.hidden) {
+      return res.status(403).json({ success: false, message: rule.reason || 'Chat is not available before provider accepts job request.', chatRule: rule });
+    }
+
     const convId = await ensureConversationExists(bookingId);
     if (!convId) return res.status(404).json({ success: false, message: 'Chat conversation could not be initialized' });
 
     const chat = await getFormattedChat(convId);
-    res.json({ success: true, chat });
+    res.json({ success: true, chat, chatRule: rule });
   } catch (err) {
     console.error('[Chats getChat Error]', err);
     res.status(500).json({ success: false, message: 'Failed to fetch chat conversation' });
@@ -198,7 +260,7 @@ exports.sendMessage = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Message text or image is required' });
     }
 
-    const bRes = await db.query('SELECT customer_id, provider_id FROM bookings WHERE id = $1', [bookingId]);
+    const bRes = await db.query('SELECT * FROM bookings WHERE id = $1', [bookingId]);
     if (bRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
     const b = bRes.rows[0];
 
@@ -210,6 +272,11 @@ exports.sendMessage = async (req, res) => {
     }
     if (req.user.role === 'provider' && b.provider_id !== pId) {
       return res.status(403).json({ success: false, message: 'Access denied: not your booking chat' });
+    }
+
+    const rule = getChatStatusRule(b);
+    if (rule.hidden || !rule.active) {
+      return res.status(403).json({ success: false, message: rule.reason || 'Chat is inactive or archived for this booking.' });
     }
 
     const convId = await ensureConversationExists(bookingId);

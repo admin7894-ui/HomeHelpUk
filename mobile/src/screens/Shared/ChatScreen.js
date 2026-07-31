@@ -47,9 +47,14 @@ export default function ChatScreen({ route, navigation }) {
 
   const [conversationId, setConversationId] = useState(null);
 
+  const [chatRule, setChatRule] = useState(null);
+
   const loadMessages = async () => {
     try {
       const { data } = await api.get(`/chats/${bookingId}`);
+      if (data.chatRule) {
+        setChatRule(data.chatRule);
+      }
       if (data.chat) {
         setConversationId(data.chat.id);
         if (data.chat.messages) {
@@ -75,7 +80,9 @@ export default function ChatScreen({ route, navigation }) {
         }));
       }
     } catch (err) {
-      // Non-fatal
+      if (err.response?.data?.chatRule) {
+        setChatRule(err.response.data.chatRule);
+      }
     }
   };
 
@@ -170,6 +177,24 @@ export default function ChatScreen({ route, navigation }) {
 
       {/* Main Chat Content Area */}
       <View style={[styles.chatBody, { backgroundColor: theme.background }]}>
+        {chatRule?.postCompletion && (
+          <View style={{ backgroundColor: '#FEF3C7', paddingVertical: 8, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="time-outline" size={18} color="#D97706" style={{ marginRight: 8 }} />
+            <Text style={{ fontSize: 12, color: '#92400E', fontWeight: '600', flex: 1 }}>
+              7-Day Follow-up Window Active (For invoices, questions & updates)
+            </Text>
+          </View>
+        )}
+
+        {chatRule?.archived && (
+          <View style={{ backgroundColor: '#F1F5F9', paddingVertical: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="archive-outline" size={18} color="#64748B" style={{ marginRight: 8 }} />
+            <Text style={{ fontSize: 13, color: '#475569', fontWeight: '600', flex: 1 }}>
+              This conversation has been archived for this booking.
+            </Text>
+          </View>
+        )}
+
         <FlatList
           ref={listRef}
           style={{ flex: 1 }}
@@ -208,30 +233,36 @@ export default function ChatScreen({ route, navigation }) {
         />
 
         {/* Rounded Pill-Style Input Box */}
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View style={[styles.inputContainer, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-            <View style={[styles.pillInputBox, { backgroundColor: '#F4F7F5', borderColor: theme.border }]}>
-              <TextInput
-                placeholder="Type a message..."
-                placeholderTextColor={theme.textMuted}
-                value={draft}
-                onChangeText={setDraft}
-                style={[styles.textInput, { color: theme.text, fontSize: scaledFont(15, fontScale) }]}
-                multiline={false}
-                onSubmitEditing={send}
-              />
-            </View>
+        {(!chatRule || chatRule.active !== false) ? (
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <View style={[styles.inputContainer, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+              <View style={[styles.pillInputBox, { backgroundColor: '#F4F7F5', borderColor: theme.border }]}>
+                <TextInput
+                  placeholder="Type a message..."
+                  placeholderTextColor={theme.textMuted}
+                  value={draft}
+                  onChangeText={setDraft}
+                  style={[styles.textInput, { color: theme.text, fontSize: scaledFont(15, fontScale) }]}
+                  multiline={false}
+                  onSubmitEditing={send}
+                />
+              </View>
 
-            <Pressable
-              onPress={send}
-              accessibilityRole="button"
-              accessibilityLabel="Send message"
-              style={[styles.sendButton, { backgroundColor: '#0A3925' }]}
-            >
-              <Ionicons name="send" size={18} color="#FFFFFF" style={{ marginLeft: 2 }} />
-            </Pressable>
+              <Pressable
+                onPress={send}
+                accessibilityRole="button"
+                accessibilityLabel="Send message"
+                style={[styles.sendButton, { backgroundColor: '#0A3925' }]}
+              >
+                <Ionicons name="send" size={18} color="#FFFFFF" style={{ marginLeft: 2 }} />
+              </Pressable>
+            </View>
+          </KeyboardAvoidingView>
+        ) : (
+          <View style={{ padding: 14, backgroundColor: '#F8FAFC', borderTopWidth: 1, borderTopColor: '#E2E8F0', alignItems: 'center' }}>
+            <Text style={{ fontSize: 13, color: '#94A3B8', fontWeight: '600' }}>Messaging is closed for this archived booking</Text>
           </View>
-        </KeyboardAvoidingView>
+        )}
       </View>
     </SafeAreaView>
   );
